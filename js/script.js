@@ -13,10 +13,8 @@ class ThemeManager {
 
   init() {
     // Load saved theme or use system preference
-    const savedTheme = localStorage.getItem("theme");
-    const initialTheme =
-      savedTheme || (this.prefersDark.matches ? "dark" : "light");
-
+    // const savedTheme = localStorage.getItem("theme");
+    const initialTheme ="dark";
     this.setTheme(initialTheme);
     this.bindEvents();
   }
