@@ -1,0 +1,490 @@
+@import "tailwindcss";
+
+@theme {
+  --font-segoe: "Segoe UI", "Segoe UI Variable Text", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: Consolas, Courier New, monospace;
+  
+  --color-win11-blue: #0078d4;
+  --color-win11-blue-light: #0086f0;
+  --color-win11-blue-dark: #0066b3;
+  
+  --shadow-win11: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  --shadow-window: 0 12px 40px rgba(0, 0, 0, 0.25);
+  --shadow-activeWindow: 0 24px 64px rgba(0, 0, 0, 0.35);
+}
+
+@layer base {
+  body {
+    @apply font-segoe overflow-hidden m-0 p-0 h-screen w-screen select-none;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Glassmorphism custom styles */
+.glass-panel {
+  backdrop-filter: blur(30px) saturate(125%);
+  -webkit-backdrop-filter: blur(30px) saturate(125%);
+}
+
+.glass-panel-light {
+  background-color: rgba(243, 243, 243, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #1c1c1c;
+}
+
+.glass-panel-dark {
+  background-color: rgba(28, 28, 28, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #e3e3e3;
+}
+
+.glass-card-light {
+  background-color: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-card-dark {
+  background-color: rgba(45, 45, 45, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Scrollbars for apps */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 120, 0.25);
+  border: 4px solid transparent;
+  background-clip: padding-box;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 120, 0.45);
+  border: 4px solid transparent;
+  background-clip: padding-box;
+}
+
+/* ============================================
+   BOOT SCREEN ANIMATIONS
+   ============================================ */
+
+@keyframes bootLogoEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+    filter: blur(8px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+.animate-boot-logo {
+  animation: bootLogoEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes bootSpinner {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-boot-spinner {
+  animation: bootSpinner 1.2s linear infinite;
+}
+
+@keyframes bootDotPulse {
+  0%, 80%, 100% {
+    opacity: 0.15;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-boot-dot {
+  animation: bootDotPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes bootFadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.animate-boot-fadeout {
+  animation: bootFadeOut 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ============================================
+   DESKTOP FADE-IN AFTER BOOT
+   ============================================ */
+
+@keyframes desktopFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-desktop-enter {
+  animation: desktopFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ============================================
+   WINDOW ANIMATIONS
+   ============================================ */
+
+/* Window Open */
+@keyframes windowOpen {
+  from {
+    transform: scale(0.92) translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-window-open {
+  animation: windowOpen 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Window Close */
+@keyframes windowClose {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.92) translateY(12px);
+    opacity: 0;
+  }
+}
+
+.animate-window-close {
+  animation: windowClose 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+/* Window Minimize (shrink down toward taskbar) */
+@keyframes windowMinimize {
+  0% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.5) translateY(60vh);
+    opacity: 0;
+  }
+}
+
+.animate-window-minimize {
+  animation: windowMinimize 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+/* Window Restore (from taskbar back up) */
+@keyframes windowRestore {
+  0% {
+    transform: scale(0.5) translateY(60vh);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-window-restore {
+  animation: windowRestore 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Window Maximize transition */
+@keyframes windowMaximize {
+  from {
+    border-radius: 8px;
+  }
+  to {
+    border-radius: 0;
+  }
+}
+
+/* ============================================
+   START MENU ANIMATIONS
+   ============================================ */
+
+@keyframes startMenuOpen {
+  from {
+    transform: translate(-50%, 30px) scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-start-open {
+  animation: startMenuOpen 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes startMenuClose {
+  from {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, 30px) scale(0.96);
+    opacity: 0;
+  }
+}
+
+.animate-start-close {
+  animation: startMenuClose 0.18s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+/* Staggered icon entrance for pinned apps */
+@keyframes pinIconEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-pin-icon {
+  animation: pinIconEntrance 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ============================================
+   LIGHTBOX / GALLERY ANIMATIONS
+   ============================================ */
+
+@keyframes lightboxOpen {
+  0% {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
+}
+
+.animate-lightbox-open {
+  animation: lightboxOpen 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes lightboxImageZoom {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-lightbox-image {
+  animation: lightboxImageZoom 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ============================================
+   WIDGETS PANEL ANIMATIONS
+   ============================================ */
+
+@keyframes widgetSlideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-widgets-in {
+  animation: widgetSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes widgetSlideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+.animate-widgets-out {
+  animation: widgetSlideOut 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+/* Widget card staggered entrance */
+@keyframes widgetCardEntrance {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-widget-card {
+  animation: widgetCardEntrance 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ============================================
+   MUSIC PLAYER ANIMATIONS
+   ============================================ */
+
+@keyframes musicBar {
+  0%, 100% { height: 4px; }
+  50% { height: var(--bar-height, 16px); }
+}
+
+.music-bar {
+  animation: musicBar var(--bar-speed, 0.5s) ease-in-out infinite;
+  animation-delay: var(--bar-delay, 0s);
+}
+
+@keyframes musicPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 120, 212, 0.3); }
+  50% { box-shadow: 0 0 0 8px rgba(0, 120, 212, 0); }
+}
+
+.music-pulse {
+  animation: musicPulse 2s ease-in-out infinite;
+}
+
+/* ============================================
+   DESKTOP ICON HOVER EFFECTS
+   ============================================ */
+
+@keyframes iconHoverGlow {
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+  100% { box-shadow: 0 0 12px 2px rgba(255, 255, 255, 0.06); }
+}
+
+.desktop-icon:hover {
+  animation: iconHoverGlow 0.2s ease-out forwards;
+}
+
+/* ============================================
+   GENERIC FADE / SLIDE TRANSITIONS
+   ============================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Content transition for switching tabs inside apps */
+@keyframes tabContentSwitch {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-tab-content {
+  animation: tabContentSwitch 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ============================================
+   BIOS LOADING (Restart)
+   ============================================ */
+
+@keyframes loading {
+  0% {
+    left: -40%;
+  }
+  50% {
+    left: 100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.animate-bios-loading {
+  position: relative;
+  animation: loading 1.5s infinite linear;
+}
+
+/* ============================================
+   PROFILE WALLPAPER OVERLAY
+   ============================================ */
+
+.wallpaper-profile {
+  position: relative;
+}
+
+.wallpaper-profile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.15) 40%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
