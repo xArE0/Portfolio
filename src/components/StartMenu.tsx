@@ -85,14 +85,14 @@ export const StartMenu: React.FC<StartMenuProps> = ({
       }}
       style={{
         zIndex: 998,
-        maxHeight: 'calc(100vh - 120px)',
-        overflow: 'hidden',
+        /* 100% = desktop container height; subtract taskbar(48px) + bottom offset(56px) + 8px breathing room */
+        maxHeight: 'calc(100% - 112px)',
       }}
-      className={`absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 ${
+      className={`absolute bottom-14 left-0 right-0 mx-auto ${
         deviceType === 'mobile' ? 'w-[95%] max-w-[380px]' :
         deviceType === 'tablet' ? 'w-[92%] max-w-[500px]' :
-        'w-[90%] max-w-[580px]'
-      } rounded-xl glass-panel shadow-activeWindow flex flex-col border ${
+        'w-[90%] max-w-[560px]'
+      } rounded-xl glass-panel shadow-activeWindow flex flex-col overflow-hidden border ${
         isClosing ? 'animate-start-close' : 'animate-start-open'
       } ${
         darkMode 
@@ -120,7 +120,7 @@ export const StartMenu: React.FC<StartMenuProps> = ({
       </div>
 
       {/* Main Grid Content */}
-      <div className={`flex-1 ${deviceType === 'mobile' ? 'px-3' : 'px-8'} overflow-y-auto`}>
+      <div className={`flex-1 min-h-0 ${deviceType === 'mobile' ? 'px-3' : 'px-8'} overflow-y-auto`}>
         {/* Pinned Section */}
         <div className={deviceType === 'mobile' ? 'mb-3' : 'mb-6'}>
           <div className={`flex items-center justify-between ${deviceType === 'mobile' ? 'text-[10px]' : 'text-xs'} font-semibold px-2 mb-3`}>

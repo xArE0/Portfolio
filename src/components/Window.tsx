@@ -60,7 +60,7 @@ export const Window: React.FC<WindowProps> = ({
 
   // Reset/Position adjustments on mount to avoid overlaying completely
   useEffect(() => {
-    const randomOffset = Math.floor(Math.random() * 40) - 20;
+    const randomOffset = Math.floor(Math.random() * 20) - 10;
     
     // Calculate sizes based on device type
     let initialWidth: number;
@@ -75,19 +75,20 @@ export const Window: React.FC<WindowProps> = ({
       initialX = 8;
       initialY = 8;
     } else if (deviceType === 'tablet') {
-      // Tablet: scaled down defaults, centered
-      const tabletWidth = Math.min(window.innerWidth - 32, 600);
-      const tabletHeight = Math.min(window.innerHeight - 100, 500);
-      initialWidth = Math.min(tabletWidth, defaultWidth * 0.8);
-      initialHeight = Math.min(tabletHeight, defaultHeight * 0.8);
+      // Tablet: nearly full-screen, centered
+      initialWidth = Math.min(window.innerWidth - 32, Math.max(defaultWidth, 600));
+      initialHeight = Math.min(window.innerHeight - 80, Math.max(defaultHeight, 460));
       initialX = Math.max(16, (window.innerWidth - initialWidth) / 2 + randomOffset);
       initialY = Math.max(16, (window.innerHeight - initialHeight) / 2 + randomOffset);
     } else {
-      // Desktop: original logic
-      initialWidth = defaultWidth;
-      initialHeight = defaultHeight;
-      initialX = Math.max(20, Math.min(defaultX + randomOffset, window.innerWidth - initialWidth - 20));
-      initialY = Math.max(20, Math.min(defaultY + randomOffset, window.innerHeight - initialHeight - 60));
+      // Desktop: 80% width, 72% of available vertical space (minus taskbar ~48px)
+      const availableW = window.innerWidth;
+      const availableH = window.innerHeight - 48; // subtract taskbar
+      initialWidth = Math.round(availableW * 0.80);
+      initialHeight = Math.round(availableH * 0.72);
+      // Upper-left biased: ~5% from left, ~12px from top
+      initialX = Math.max(8, Math.round(availableW * 0.05) + randomOffset);
+      initialY = Math.max(8, 12 + randomOffset);
     }
 
     const timer = setTimeout(() => {

@@ -32,7 +32,15 @@ export const MonitorFrame: React.FC<MonitorFrameProps> = ({ children, onPowerCli
   // Render Mobile Frame
   if (deviceType === 'mobile') {
     return (
-      <div className="h-screen w-screen bg-gradient-to-b from-[#111119] to-[#08080e] flex flex-col items-center justify-center select-none overflow-hidden">
+      <div className="h-screen w-screen bg-gradient-to-b from-[#111119] to-[#08080e] flex items-center justify-center select-none overflow-hidden">
+        {/* Side buttons on the left of phone */}
+        <div className="flex flex-col gap-3 mr-[-2px] z-10">
+          {/* Volume Up */}
+          <div className="w-[4px] h-10 rounded-l-sm" style={{ background: 'linear-gradient(180deg, #2a2a3c 0%, #1c1c2a 100%)', boxShadow: '-2px 0 4px rgba(0,0,0,0.4)' }} />
+          {/* Volume Down */}
+          <div className="w-[4px] h-10 rounded-l-sm" style={{ background: 'linear-gradient(180deg, #2a2a3c 0%, #1c1c2a 100%)', boxShadow: '-2px 0 4px rgba(0,0,0,0.4)' }} />
+        </div>
+
         <div className="relative w-[90%] max-w-[380px] aspect-[9/20] rounded-[40px] overflow-hidden border-[12px] border-[#1e1e2d]" style={{ background: '#000' }}>
           {/* Notch */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-[#000] rounded-b-3xl z-50" />
@@ -54,9 +62,14 @@ export const MonitorFrame: React.FC<MonitorFrameProps> = ({ children, onPowerCli
             </div>
           )}
         </div>
-        {/* Power button */}
-        <button onClick={() => { setIsMonitorOn(!isMonitorOn); onPowerClick?.(); }} className="mt-4 px-4 py-1 text-xs font-mono text-gray-400 border border-gray-600 rounded hover:border-red-500 transition-colors">
-          Power
+
+        {/* Physical power button on right side */}
+        <button
+          onClick={() => { setIsMonitorOn(!isMonitorOn); onPowerClick?.(); }}
+          title="Power"
+          className="ml-[-2px] z-10 active:scale-95 transition-transform"
+        >
+          <div className="w-[4px] h-14 rounded-r-sm" style={{ background: 'linear-gradient(180deg, #2a2a3c 0%, #1c1c2a 100%)', boxShadow: '2px 0 4px rgba(0,0,0,0.4)' }} />
         </button>
       </div>
     );
@@ -66,6 +79,20 @@ export const MonitorFrame: React.FC<MonitorFrameProps> = ({ children, onPowerCli
   if (deviceType === 'tablet') {
     return (
       <div className="h-screen w-screen bg-gradient-to-b from-[#111119] to-[#08080e] flex flex-col items-center justify-center select-none overflow-hidden">
+        {/* Top edge buttons row */}
+        <div className="flex items-center gap-2 mb-[-2px] z-10 self-end pr-[6%]">
+          {/* Volume rocker */}
+          <div className="h-[5px] w-10 rounded-t-sm" style={{ background: 'linear-gradient(90deg, #2a2a3c 0%, #1c1c2a 100%)', boxShadow: '0 -2px 4px rgba(0,0,0,0.4)' }} />
+          {/* Power button */}
+          <button
+            onClick={() => { setIsMonitorOn(!isMonitorOn); onPowerClick?.(); }}
+            title="Power"
+            className="active:scale-95 transition-transform"
+          >
+            <div className="h-[5px] w-6 rounded-t-sm" style={{ background: 'linear-gradient(90deg, #3a3a50 0%, #2a2a3c 100%)', boxShadow: '0 -2px 6px rgba(0,0,0,0.5)' }} />
+          </button>
+        </div>
+
         <div className="relative w-[95%] max-w-[900px] aspect-[16/10] rounded-3xl overflow-hidden border-[18px] border-[#1e1e2d]" style={{ background: '#000' }}>
           {/* Home indicator */}
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-[#1e1e2d] rounded-full z-50" />
@@ -87,17 +114,13 @@ export const MonitorFrame: React.FC<MonitorFrameProps> = ({ children, onPowerCli
             </div>
           )}
         </div>
-        {/* Power button */}
-        <button onClick={() => { setIsMonitorOn(!isMonitorOn); onPowerClick?.(); }} className="mt-6 px-4 py-1 text-xs font-mono text-gray-400 border border-gray-600 rounded hover:border-red-500 transition-colors">
-          Power
-        </button>
       </div>
     );
   }
 
   // Render Desktop Monitor Frame (default)
   return (
-    <div className="h-screen w-screen bg-gradient-to-b from-[#111119] to-[#08080e] flex flex-col items-center justify-end pb-2 select-none overflow-hidden">
+    <div className="h-screen w-screen flex flex-col items-center justify-end pb-2 select-none overflow-hidden px-10" style={{ background: 'linear-gradient(160deg, #f0ece8 0%, #e8e4e0 40%, #ece8e4 100%)' }}>
       {/* === MONITOR SCREEN === */}
       <div
         className="relative w-[98%] max-w-[1720px] flex-1 mt-2 rounded-t-xl overflow-hidden"
@@ -155,7 +178,7 @@ export const MonitorFrame: React.FC<MonitorFrameProps> = ({ children, onPowerCli
 
         {/* Brand logo (centered) */}
         <span className="text-[9px] font-mono tracking-[0.4em] text-gray-500 uppercase select-none font-bold">
-          PortfolioOS UltraWide
+          xArE0
         </span>
 
         {/* Right side power control group */}
