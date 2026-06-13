@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Laptop, Palette, Volume2, Info, Monitor, CheckCircle, 
-  RefreshCw
+  RefreshCw, ArrowLeft
 } from 'lucide-react';
 
 interface SettingsAppProps {
@@ -11,6 +11,7 @@ interface SettingsAppProps {
   onToggleSound: () => void;
   darkMode: boolean;
   onToggleDarkMode: () => void;
+  deviceType?: 'monitor' | 'tablet' | 'mobile';
 }
 
 export const SettingsApp: React.FC<SettingsAppProps> = ({
@@ -20,7 +21,10 @@ export const SettingsApp: React.FC<SettingsAppProps> = ({
   onToggleSound,
   darkMode,
   onToggleDarkMode,
+  deviceType = 'monitor',
 }) => {
+  const isMobile = deviceType === 'mobile';
+  const [showDetail, setShowDetail] = useState(false);
   const [activeTab, setActiveTab] = useState<'system' | 'personalization' | 'sound' | 'about'>('personalization');
   const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'upToDate'>('idle');
   
@@ -31,7 +35,14 @@ export const SettingsApp: React.FC<SettingsAppProps> = ({
     }, 2500);
   };
 
-  const wallpapers = [
+  interface WallpaperItem {
+    id: string;
+    name: string;
+    style: string;
+    image?: string;
+  }
+
+  const wallpapers: WallpaperItem[] = [
     { id: 'profile', name: 'Profile Photo', style: 'none', image: '/assets/profile.png' },
     { id: 'bloom-dark', name: 'Bloom Dark', style: 'linear-gradient(135deg, #0f0c20 0%, #15103a 25%, #052c59 60%, #0c0714 100%)' },
     { id: 'bloom-light', name: 'Bloom Light', style: 'linear-gradient(135deg, #e4eefb 0%, #d8e5f7 30%, #f7dced 70%, #e8f0fe 100%)' },
@@ -44,70 +55,86 @@ export const SettingsApp: React.FC<SettingsAppProps> = ({
       darkMode ? 'bg-[#1c1c1c] text-[#e3e3e3]' : 'bg-[#f3f3f3] text-gray-800'
     }`}>
       {/* Sidebar navigation */}
-      <div className={`w-[140px] sm:w-[170px] border-r p-2 flex flex-col gap-1 overflow-y-auto ${
-        darkMode ? 'bg-[#202020] border-[#2d2d2d]' : 'bg-[#fbfbfb] border-gray-200'
-      }`}>
-        <div className="flex items-center gap-2 px-3 py-4 mb-2">
-          <div className="w-10 h-10 rounded bg-win11-blue flex items-center justify-center text-white font-bold select-none text-sm">
-            OS
+      {(!isMobile || !showDetail) && (
+        <div className={`${
+          isMobile ? 'w-full' : 'w-[140px] sm:w-[170px] border-r'
+        } p-2 flex flex-col gap-1 overflow-y-auto ${
+          darkMode ? 'bg-[#202020] border-[#2d2d2d]' : 'bg-[#fbfbfb] border-gray-200'
+        }`}>
+          <div className="flex items-center gap-2 px-3 py-4 mb-2">
+            <div className="w-10 h-10 rounded bg-win11-blue flex items-center justify-center text-white font-bold select-none text-sm">
+              OS
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="font-semibold truncate">Settings</span>
+              <span className="text-[10px] opacity-60">{isMobile ? 'Mobile OS' : 'Windows 11'}</span>
+            </div>
           </div>
-          <div className="flex flex-col leading-tight">
-            <span className="font-semibold truncate">Settings</span>
-            <span className="text-[10px] opacity-60">Windows 11</span>
-          </div>
+
+          <button
+            onClick={() => { setActiveTab('system'); if (isMobile) setShowDetail(true); }}
+            className={`flex items-center gap-2.5 px-3 py-2 rounded text-left transition-all ${
+              activeTab === 'system'
+                ? 'bg-win11-blue/20 text-win11-blue font-semibold'
+                : (darkMode ? 'hover:bg-neutral-800' : 'hover:bg-gray-200')
+            }`}
+          >
+            <Laptop size={14} />
+            <span>System</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('personalization'); if (isMobile) setShowDetail(true); }}
+            className={`flex items-center gap-2.5 px-3 py-2 rounded text-left transition-all ${
+              activeTab === 'personalization'
+                ? 'bg-win11-blue/20 text-win11-blue font-semibold'
+                : (darkMode ? 'hover:bg-neutral-800' : 'hover:bg-gray-200')
+            }`}
+          >
+            <Palette size={14} />
+            <span>Personalization</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('sound'); if (isMobile) setShowDetail(true); }}
+            className={`flex items-center gap-2.5 px-3 py-2 rounded text-left transition-all ${
+              activeTab === 'sound'
+                ? 'bg-win11-blue/20 text-win11-blue font-semibold'
+                : (darkMode ? 'hover:bg-neutral-800' : 'hover:bg-gray-200')
+            }`}
+          >
+            <Volume2 size={14} />
+            <span>Sound</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('about'); if (isMobile) setShowDetail(true); }}
+            className={`flex items-center gap-2.5 px-3 py-2 rounded text-left transition-all ${
+              activeTab === 'about'
+                ? 'bg-win11-blue/20 text-win11-blue font-semibold'
+                : (darkMode ? 'hover:bg-neutral-800' : 'hover:bg-gray-200')
+            }`}
+          >
+            <Info size={14} />
+            <span>About</span>
+          </button>
         </div>
-
-        <button
-          onClick={() => setActiveTab('system')}
-          className={`flex items-center gap-2.5 px-3 py-2 rounded text-left transition-all ${
-            activeTab === 'system'
-              ? 'bg-win11-blue/20 text-win11-blue font-semibold'
-              : (darkMode ? 'hover:bg-neutral-800' : 'hover:bg-gray-200')
-          }`}
-        >
-          <Laptop size={14} />
-          <span>System</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('personalization')}
-          className={`flex items-center gap-2.5 px-3 py-2 rounded text-left transition-all ${
-            activeTab === 'personalization'
-              ? 'bg-win11-blue/20 text-win11-blue font-semibold'
-              : (darkMode ? 'hover:bg-neutral-800' : 'hover:bg-gray-200')
-          }`}
-        >
-          <Palette size={14} />
-          <span>Personalization</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('sound')}
-          className={`flex items-center gap-2.5 px-3 py-2 rounded text-left transition-all ${
-            activeTab === 'sound'
-              ? 'bg-win11-blue/20 text-win11-blue font-semibold'
-              : (darkMode ? 'hover:bg-neutral-800' : 'hover:bg-gray-200')
-          }`}
-        >
-          <Volume2 size={14} />
-          <span>Sound</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('about')}
-          className={`flex items-center gap-2.5 px-3 py-2 rounded text-left transition-all ${
-            activeTab === 'about'
-              ? 'bg-win11-blue/20 text-win11-blue font-semibold'
-              : (darkMode ? 'hover:bg-neutral-800' : 'hover:bg-gray-200')
-          }`}
-        >
-          <Info size={14} />
-          <span>About</span>
-        </button>
-      </div>
+      )}
 
       {/* Main Settings Content */}
-      <div className="flex-1 p-6 overflow-y-auto">
+      {(!isMobile || showDetail) && (
+        <div className="flex-1 p-6 overflow-y-auto">
+          {isMobile && (
+            <div className="flex items-center gap-2 mb-4 border-b pb-2 border-neutral-700/20">
+              <button
+                onClick={() => setShowDetail(false)}
+                className="flex items-center gap-1.5 text-win11-blue font-semibold text-[11px]"
+              >
+                <ArrowLeft size={14} />
+                <span>Back to Settings</span>
+              </button>
+            </div>
+          )}
         {activeTab === 'system' && (
           <div className="flex flex-col gap-5">
             <div>
@@ -221,7 +248,7 @@ export const SettingsApp: React.FC<SettingsAppProps> = ({
                     {/* Wallpaper Preview thumbnail */}
                     <div 
                       style={{ 
-                        background: (wp as any).image ? `url(${(wp as any).image}) center/cover` : wp.style
+                        background: wp.image ? `url(${wp.image}) center/cover` : wp.style
                       }}
                       className="w-full h-16"
                     />
@@ -290,7 +317,8 @@ export const SettingsApp: React.FC<SettingsAppProps> = ({
             </div>
           </div>
         )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

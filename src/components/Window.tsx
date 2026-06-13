@@ -15,6 +15,7 @@ interface WindowProps {
   defaultWidth?: number;
   defaultHeight?: number;
   darkMode?: boolean;
+  deviceType?: 'monitor' | 'tablet' | 'mobile';
   children: React.ReactNode;
   onClose: () => void;
   onMinimize: () => void;
@@ -37,6 +38,7 @@ export const Window: React.FC<WindowProps> = ({
   defaultWidth = 700,
   defaultHeight = 450,
   darkMode = true,
+  deviceType = 'monitor',
   children,
   onClose,
   onMinimize,
@@ -59,43 +61,87 @@ export const Window: React.FC<WindowProps> = ({
   // Reset/Position adjustments on mount to avoid overlaying completely
   useEffect(() => {
     const randomOffset = Math.floor(Math.random() * 40) - 20;
-    setPosition({
-      x: Math.max(20, defaultX + randomOffset),
-      y: Math.max(20, defaultY + randomOffset),
-    });
-  }, [defaultX, defaultY]);
+    
+    // Calculate sizes based on device type
+    let initialWidth: number;
+    let initialHeight: number;
+    let initialX: number;
+    let initialY: number;
+
+    if (deviceType === 'mobile') {
+      // Mobile: full width, full height with some padding
+      initialWidth = Math.max(window.innerWidth - 16, 300);
+      initialHeight = Math.max(window.innerHeight - 80, 300);
+      initialX = 8;
+      initialY = 8;
+    } else if (deviceType === 'tablet') {
+      // Tablet: scaled down defaults, centered
+      const tabletWidth = Math.min(window.innerWidth - 32, 600);
+      const tabletHeight = Math.min(window.innerHeight - 100, 500);
+      initialWidth = Math.min(tabletWidth, defaultWidth * 0.8);
+      initialHeight = Math.min(tabletHeight, defaultHeight * 0.8);
+      initialX = Math.max(16, (window.innerWidth - initialWidth) / 2 + randomOffset);
+      initialY = Math.max(16, (window.innerHeight - initialHeight) / 2 + randomOffset);
+    } else {
+      // Desktop: original logic
+      initialWidth = defaultWidth;
+      initialHeight = defaultHeight;
+      initialX = Math.max(20, Math.min(defaultX + randomOffset, window.innerWidth - initialWidth - 20));
+      initialY = Math.max(20, Math.min(defaultY + randomOffset, window.innerHeight - initialHeight - 60));
+    }
+
+    const timer = setTimeout(() => {
+      setSize({
+        width: initialWidth,
+        height: initialHeight,
+      });
+      
+      setPosition({
+        x: initialX,
+        y: initialY,
+      });
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [deviceType, defaultWidth, defaultHeight, defaultX, defaultY]);
 
   // Handle open/close/minimize transitions
   useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
     if (isOpen && !isMinimized) {
-      setShouldRender(true);
-      if (wasMinimized) {
-        setAnimState('restoring');
-        setWasMinimized(false);
-        const timer = setTimeout(() => setAnimState('idle'), 300);
-        return () => clearTimeout(timer);
-      } else {
-        setAnimState('opening');
-        const timer = setTimeout(() => setAnimState('idle'), 280);
-        return () => clearTimeout(timer);
-      }
+      setTimeout(() => {
+        setShouldRender(true);
+        if (wasMinimized) {
+          setAnimState('restoring');
+          setWasMinimized(false);
+          timer = setTimeout(() => setAnimState('idle'), 300);
+        } else {
+          setAnimState('opening');
+          timer = setTimeout(() => setAnimState('idle'), 280);
+        }
+      }, 0);
     } else if (isOpen && isMinimized) {
-      setWasMinimized(true);
-      setAnimState('minimizing');
-      const timer = setTimeout(() => {
-        setShouldRender(false);
-        setAnimState('idle');
-      }, 300);
-      return () => clearTimeout(timer);
+      setTimeout(() => {
+        setWasMinimized(true);
+        setAnimState('minimizing');
+        timer = setTimeout(() => {
+          setShouldRender(false);
+          setAnimState('idle');
+        }, 300);
+      }, 0);
     } else if (!isOpen && shouldRender) {
-      setAnimState('closing');
-      const timer = setTimeout(() => {
-        setShouldRender(false);
-        setAnimState('idle');
-      }, 200);
-      return () => clearTimeout(timer);
+      setTimeout(() => {
+        setAnimState('closing');
+        timer = setTimeout(() => {
+          setShouldRender(false);
+          setAnimState('idle');
+        }, 200);
+      }, 0);
     }
-  }, [isOpen, isMinimized]);
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isOpen, isMinimized, shouldRender, wasMinimized]);
 
   // Handle Dragging
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -139,8 +185,10 @@ export const Window: React.FC<WindowProps> = ({
         const dx = e.clientX - dragStart.current.x;
         const dy = e.clientY - dragStart.current.y;
         
-        const newWidth = Math.max(320, sizeStart.current.width + dx);
-        const newHeight = Math.max(200, sizeStart.current.height + dy);
+        const maxWidth = window.innerWidth - 20;
+        const maxHeight = window.innerHeight - 80;
+        const newWidth = Math.max(320, Math.min(maxWidth, sizeStart.current.width + dx));
+        const newHeight = Math.max(200, Math.min(maxHeight, sizeStart.current.height + dy));
         
         setSize({ width: newWidth, height: newHeight });
       }
@@ -186,8 +234,10 @@ export const Window: React.FC<WindowProps> = ({
         top: isMaximized ? 0 : `${position.y}px`,
         width: isMaximized ? '100%' : `${size.width}px`,
         height: isMaximized ? 'calc(100% - 48px)' : `${size.height}px`,
+        maxWidth: '100vw',
+        maxHeight: 'calc(100% - 48px)',
       }}
-      className={`absolute flex flex-col rounded-lg overflow-hidden glass-panel select-none transition-shadow duration-200 shadow-window ${
+      className={`absolute flex flex-col rounded-lg overflow-hidden glass-panel select-none ${isDragging || isResizing ? '' : 'transition-all duration-200'} shadow-window ${
         isActive 
           ? (darkMode ? 'glass-panel-dark shadow-activeWindow border-[rgba(255,255,255,0.15)]' : 'glass-panel-light shadow-activeWindow border-[rgba(255,255,255,0.55)]')
           : (darkMode ? 'glass-panel-dark opacity-90' : 'glass-panel-light opacity-90')

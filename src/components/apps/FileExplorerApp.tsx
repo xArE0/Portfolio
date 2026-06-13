@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { 
   Folder, FileText, ChevronRight, ArrowLeft, ArrowRight, 
   Search, ExternalLink, Monitor, HardDrive, 
-  Sparkles, Code, Server, RefreshCw
+  Sparkles, Code, Server, RefreshCw, X
 } from 'lucide-react';
 import { Github } from '../icons';
 
 interface FileExplorerAppProps {
   darkMode: boolean;
+  deviceType?: 'monitor' | 'tablet' | 'mobile';
 }
 
 interface ExplorerItem {
@@ -23,7 +24,9 @@ interface ExplorerItem {
   icon?: React.ReactNode;
 }
 
-export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode }) => {
+export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, deviceType = 'monitor' }) => {
+  const isMobile = deviceType === 'mobile';
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<'desktop' | 'documents' | 'projects' | 'skills'>('projects');
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -137,6 +140,10 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode }) =>
     newStack.push(category);
     setHistoryStack(newStack);
     setHistoryIndex(newStack.length - 1);
+    
+    if (isMobile) {
+      setIsSidebarOpen(false);
+    }
   };
 
   const handleBack = () => {
@@ -178,6 +185,21 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode }) =>
         darkMode ? 'bg-[#252526] border-[#2d2d2d]' : 'bg-[#e9e9e9] border-gray-200'
       }`}>
         <div className="flex items-center gap-1.5">
+          {isMobile && (
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className={`p-1 rounded transition-colors mr-1 ${
+                darkMode ? 'hover:bg-neutral-700 text-gray-300' : 'hover:bg-gray-300 text-gray-700'
+              }`}
+            >
+              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-current" strokeWidth={2} strokeLinecap="round">
+                <line x1="4" y1="6" x2="20" y2="6" />
+                <line x1="4" y1="12" x2="20" y2="12" />
+                <line x1="4" y1="18" x2="20" y2="18" />
+              </svg>
+            </button>
+          )}
+
           <button 
             disabled={historyIndex === 0} 
             onClick={handleBack}
@@ -236,10 +258,24 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode }) =>
       </div>
 
       {/* Main Grid View */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Mobile Sidebar Drawer Backdrop */}
+        {isMobile && isSidebarOpen && (
+          <div 
+            onClick={() => setIsSidebarOpen(false)}
+            className="absolute inset-0 bg-black/60 backdrop-blur-[1px] z-40 animate-fade-in"
+          />
+        )}
+
         {/* Left Sidebar */}
-        <div className={`w-[140px] sm:w-[170px] border-r p-2 flex flex-col gap-1.5 overflow-y-auto select-none ${
-          darkMode ? 'bg-[#202020] border-[#2d2d2d]' : 'bg-[#fbfbfb] border-gray-200'
+        <div className={`${
+          isMobile 
+            ? `absolute top-0 bottom-0 left-0 w-[190px] z-50 shadow-2xl transition-transform duration-200 ${
+                isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+              }` 
+            : 'w-[140px] sm:w-[170px] border-r'
+        } p-2 flex flex-col gap-1.5 overflow-y-auto select-none ${
+          darkMode ? 'bg-[#202020] border-r border-[#2d2d2d]' : 'bg-[#fbfbfb] border-r border-gray-200'
         }`}>
           <div className="text-[10px] uppercase font-semibold text-gray-500 px-2.5 mb-1.5">Quick Access</div>
           
@@ -318,9 +354,33 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode }) =>
 
         {/* Right Preview Pane */}
         {selectedItem && (
-          <div className={`w-[200px] sm:w-[260px] border-l p-4 flex flex-col overflow-y-auto select-text ${
-            darkMode ? 'bg-[#1a1a1a] border-[#2d2d2d]' : 'bg-[#f9f9f9] border-gray-200'
+          <div className={`${
+            isMobile 
+              ? 'absolute inset-0 z-30 flex flex-col animate-slide-up p-4' 
+              : 'w-[200px] sm:w-[260px] border-l p-4 flex flex-col'
+          } overflow-y-auto select-text ${
+            darkMode ? 'bg-[#1a1a1a] border-l border-[#2d2d2d]' : 'bg-[#f9f9f9] border-l border-gray-200'
           }`}>
+            {isMobile && (
+              <div className="flex items-center justify-between border-b pb-2 mb-3 border-neutral-700/25">
+                <button
+                  onClick={() => setSelectedItemId(null)}
+                  className="flex items-center gap-1.5 text-win11-blue font-semibold"
+                >
+                  <ArrowLeft size={14} />
+                  <span>Back to Files</span>
+                </button>
+                <button
+                  onClick={() => setSelectedItemId(null)}
+                  className={`p-1.5 rounded-full ${
+                    darkMode ? 'hover:bg-neutral-800 text-gray-400' : 'hover:bg-gray-200 text-gray-500'
+                  }`}
+                >
+                  <X size={15} />
+                </button>
+              </div>
+            )}
+
             <div className="flex items-center justify-center mb-3">
               {selectedItem.icon}
             </div>

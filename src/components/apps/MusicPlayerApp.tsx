@@ -189,8 +189,8 @@ export const MusicPlayerApp: React.FC<MusicPlayerAppProps> = ({ darkMode }) => {
               style={{
                 backgroundColor: isPlaying ? currentTrack.color : (darkMode ? '#333' : '#ccc'),
                 height: isPlaying ? undefined : '4px',
-                ['--bar-height' as string]: `${6 + Math.random() * 20}px`,
-                ['--bar-speed' as string]: `${0.3 + Math.random() * 0.5}s`,
+                ['--bar-height' as string]: `${6 + ((i * 7) % 20)}px`,
+                ['--bar-speed' as string]: `${0.3 + ((i * 3) % 5) / 10}s`,
                 ['--bar-delay' as string]: `${i * 0.04}s`,
               }}
             />

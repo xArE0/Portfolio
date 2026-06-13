@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Power } from 'lucide-react';
 
 interface MonitorFrameProps {
@@ -6,9 +6,96 @@ interface MonitorFrameProps {
   onPowerClick?: () => void;
 }
 
+type DeviceType = 'monitor' | 'tablet' | 'mobile';
+
 export const MonitorFrame: React.FC<MonitorFrameProps> = ({ children, onPowerClick }) => {
   const [isMonitorOn, setIsMonitorOn] = useState(true);
+  const [deviceType, setDeviceType] = useState<DeviceType>('monitor');
 
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setDeviceType('mobile');
+      } else if (width < 1024) {
+        setDeviceType('tablet');
+      } else {
+        setDeviceType('monitor');
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Render Mobile Frame
+  if (deviceType === 'mobile') {
+    return (
+      <div className="h-screen w-screen bg-gradient-to-b from-[#111119] to-[#08080e] flex flex-col items-center justify-center select-none overflow-hidden">
+        <div className="relative w-[90%] max-w-[380px] aspect-[9/20] rounded-[40px] overflow-hidden border-[12px] border-[#1e1e2d]" style={{ background: '#000' }}>
+          {/* Notch */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-[#000] rounded-b-3xl z-50" />
+          {/* Camera dot */}
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50">
+            <div className="w-3 h-3 rounded-full bg-[#0d0d16] border border-[rgba(255,255,255,0.08)]">
+              <div className="w-1 h-1 rounded-full bg-[#1a4f7c] absolute inset-1/2 -translate-x-1/2 -translate-y-1/2" />
+            </div>
+          </div>
+          {/* Content */}
+          <div className="w-full h-full relative overflow-hidden pt-8">
+            {children}
+          </div>
+          {/* Powered off overlay */}
+          {!isMonitorOn && (
+            <div className="absolute inset-0 bg-[#020205] z-[9999] flex flex-col items-center justify-center text-neutral-600 animate-fade-in font-mono text-[9px] tracking-wider">
+              <Power size={16} className="text-neutral-500 mb-2" />
+              <span>PHONE OFF</span>
+            </div>
+          )}
+        </div>
+        {/* Power button */}
+        <button onClick={() => { setIsMonitorOn(!isMonitorOn); onPowerClick?.(); }} className="mt-4 px-4 py-1 text-xs font-mono text-gray-400 border border-gray-600 rounded hover:border-red-500 transition-colors">
+          Power
+        </button>
+      </div>
+    );
+  }
+
+  // Render Tablet Frame
+  if (deviceType === 'tablet') {
+    return (
+      <div className="h-screen w-screen bg-gradient-to-b from-[#111119] to-[#08080e] flex flex-col items-center justify-center select-none overflow-hidden">
+        <div className="relative w-[95%] max-w-[900px] aspect-[16/10] rounded-3xl overflow-hidden border-[18px] border-[#1e1e2d]" style={{ background: '#000' }}>
+          {/* Home indicator */}
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-[#1e1e2d] rounded-full z-50" />
+          {/* Camera dot */}
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-50">
+            <div className="w-4 h-4 rounded-full bg-[#0d0d16] border border-[rgba(255,255,255,0.08)]">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#1a4f7c] absolute inset-1/2 -translate-x-1/2 -translate-y-1/2" />
+            </div>
+          </div>
+          {/* Content */}
+          <div className="w-full h-full relative overflow-hidden">
+            {children}
+          </div>
+          {/* Powered off overlay */}
+          {!isMonitorOn && (
+            <div className="absolute inset-0 bg-[#020205] z-[9999] flex flex-col items-center justify-center text-neutral-600 animate-fade-in font-mono text-[11px] tracking-wider">
+              <Power size={24} className="text-neutral-500 mb-2" />
+              <span>TABLET OFF</span>
+            </div>
+          )}
+        </div>
+        {/* Power button */}
+        <button onClick={() => { setIsMonitorOn(!isMonitorOn); onPowerClick?.(); }} className="mt-6 px-4 py-1 text-xs font-mono text-gray-400 border border-gray-600 rounded hover:border-red-500 transition-colors">
+          Power
+        </button>
+      </div>
+    );
+  }
+
+  // Render Desktop Monitor Frame (default)
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-[#111119] to-[#08080e] flex flex-col items-center justify-end pb-2 select-none overflow-hidden">
       {/* === MONITOR SCREEN === */}

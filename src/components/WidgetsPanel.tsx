@@ -38,11 +38,13 @@ export const WidgetsPanel: React.FC<WidgetsPanelProps> = ({ isOpen, isClosing, d
   // Trigger animation lock when widgets panel is opened
   useEffect(() => {
     if (isOpen) {
-      setAnimateIntro(true);
       const timer = setTimeout(() => {
         setAnimateIntro(false);
       }, 800);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        setAnimateIntro(true);
+      };
     }
   }, [isOpen]);
 

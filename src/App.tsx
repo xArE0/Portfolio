@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   FileText, Folder, Terminal, Settings, Mail, 
   Power, RotateCw, Trophy, Music
@@ -15,6 +15,7 @@ import { SettingsApp } from './components/apps/SettingsApp';
 import { AchievementsApp } from './components/apps/AchievementsApp';
 import { MusicPlayerApp } from './components/apps/MusicPlayerApp';
 import { MonitorFrame } from './components/MonitorFrame';
+import { AndroidSystem } from './components/AndroidSystem';
 
 // Type Definitions
 interface WindowItem {
@@ -52,6 +53,7 @@ export default function App() {
   const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
   const [maxZIndex, setMaxZIndex] = useState(10);
   const [achievementFocus, setAchievementFocus] = useState<string | undefined>(undefined);
+  const [deviceType, setDeviceType] = useState<'monitor' | 'tablet' | 'mobile'>('monitor');
   
   // Boot states
   const [isBooting, setIsBooting] = useState(true);
@@ -65,11 +67,15 @@ export default function App() {
   // Intro animation lock to prevent flickering on re-render
   const [isIntroAnimating, setIsIntroAnimating] = useState(false);
 
+  // Track the last hash to prevent circular updates
+  const lastHashRef = useRef<string>('');
+  const windowsRef = useRef<WindowItem[]>([]);
+
   // Sound Engine (Web Audio API)
   const playSynthSound = useCallback((type: 'startup' | 'shutdown' | 'beep') => {
     if (!soundEnabled) return;
     try {
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (!AudioContext) return;
       const ctx = new AudioContext();
 
@@ -129,6 +135,26 @@ export default function App() {
   }, [soundEnabled]);
 
   // ================================
+  // DEVICE TYPE TRACKING
+  // ================================
+  useEffect(() => {
+   const handleResize = () => {
+     const width = window.innerWidth;
+     if (width < 640) {
+       setDeviceType('mobile');
+     } else if (width < 1024) {
+       setDeviceType('tablet');
+     } else {
+       setDeviceType('monitor');
+     }
+   };
+
+   handleResize();
+   window.addEventListener('resize', handleResize);
+   return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // ================================
   // BOOT SEQUENCE
   // ================================
   useEffect(() => {
@@ -158,19 +184,20 @@ export default function App() {
   // Handle intro animation timer
   useEffect(() => {
     if (!isBooting) {
-      setIsIntroAnimating(true);
       const timer = setTimeout(() => {
         setIsIntroAnimating(false);
       }, 1200);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        setIsIntroAnimating(true);
+      };
     }
   }, [isBooting]);
 
   // System restart routine
   useEffect(() => {
     if (isRestarting) {
-      setBiosStage(1);
-      
+      const timer0 = setTimeout(() => setBiosStage(1), 0);
       const timer1 = setTimeout(() => setBiosStage(2), 1500);
       const timer2 = setTimeout(() => setBiosStage(3), 3200);
       const timer3 = setTimeout(() => {
@@ -180,6 +207,7 @@ export default function App() {
       }, 5000);
 
       return () => {
+        clearTimeout(timer0);
         clearTimeout(timer1);
         clearTimeout(timer2);
         clearTimeout(timer3);
@@ -269,11 +297,21 @@ export default function App() {
     }
   ]);
 
+  // Keep windows ref in sync with state
+  useEffect(() => {
+    windowsRef.current = windows;
+  }, [windows]);
+
   // ================================
   // HASH-BASED ROUTING
   // ================================
   const handleHashRoute = useCallback(() => {
     const hash = window.location.hash;
+    
+    // Prevent processing the same hash twice
+    if (hash === lastHashRef.current) return;
+    lastHashRef.current = hash;
+    
     if (!hash) return;
 
     // Check for certificate deep link: #certificate/id
@@ -283,7 +321,7 @@ export default function App() {
       // Open achievements window
       setWindows(prev => prev.map(w => {
         if (w.id === 'achievements') {
-          const nextZ = maxZIndex + 1;
+          const nextZ = windowsRef.current.reduce((max, win) => Math.max(max, win.zIndex), 10) + 1;
           setMaxZIndex(nextZ);
           setActiveWindowId('achievements');
           return { ...w, isOpen: true, isMinimized: false, zIndex: nextZ };
@@ -298,7 +336,7 @@ export default function App() {
     if (windowId) {
       setWindows(prev => prev.map(w => {
         if (w.id === windowId) {
-          const nextZ = maxZIndex + 1;
+          const nextZ = windowsRef.current.reduce((max, win) => Math.max(max, win.zIndex), 10) + 1;
           setMaxZIndex(nextZ);
           setActiveWindowId(windowId);
           return { ...w, isOpen: true, isMinimized: false, zIndex: nextZ };
@@ -306,24 +344,25 @@ export default function App() {
         return w;
       }));
     }
-  }, [maxZIndex]);
+  }, []);
 
   // Listen for hash changes
   useEffect(() => {
     // Process initial hash after boot
     if (!isBooting) {
-      handleHashRoute();
+      setTimeout(() => handleHashRoute(), 0);
     }
     
     window.addEventListener('hashchange', handleHashRoute);
     return () => window.removeEventListener('hashchange', handleHashRoute);
   }, [isBooting, handleHashRoute]);
 
-  // Update hash when active window changes
+  // Update hash when active window changes (only from UI, not from hash routes)
   useEffect(() => {
     if (activeWindowId) {
       const routeEntry = Object.entries(HASH_ROUTES).find(([, id]) => id === activeWindowId);
-      if (routeEntry) {
+      if (routeEntry && routeEntry[0] !== window.location.hash) {
+        lastHashRef.current = routeEntry[0];
         window.history.replaceState(null, '', routeEntry[0]);
       }
     }
@@ -592,153 +631,179 @@ export default function App() {
 
   return (
     <MonitorFrame>
-    <div
-      style={{ 
-        background: isProfileWallpaper ? 'none' : wallpaperStyles[wallpaper],
-        backgroundImage: isProfileWallpaper ? 'url(/assets/profile.png)' : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-      className={`w-full h-full relative overflow-hidden flex flex-col select-none ${
-        isIntroAnimating ? 'animate-desktop-enter' : ''
-      } ${
-        isProfileWallpaper ? 'wallpaper-profile' : ''
-      }`}
-      onClick={() => {
-        if (isStartOpen) closeStartMenu();
-        if (isWidgetsOpen) {
-          setIsWidgetsClosing(true);
-          setTimeout(() => {
-            setIsWidgetsOpen(false);
-            setIsWidgetsClosing(false);
-          }, 250);
-        }
-      }}
-    >
-      {/* Cyber Grid pattern lines if cyber-grid theme is active */}
-      {wallpaper === 'cyber-grid' && (
-        <div 
+      {deviceType === 'monitor' ? (
+        <div
           style={{ 
-            backgroundImage: 'radial-gradient(circle, rgba(0, 120, 212, 0.1) 1px, transparent 1px)',
-            backgroundSize: '24px 24px'
+            background: isProfileWallpaper ? 'none' : wallpaperStyles[wallpaper],
+            backgroundImage: isProfileWallpaper ? 'url(/assets/profile.png)' : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
           }}
-          className="absolute inset-0 pointer-events-none"
+          className={`w-full h-full relative overflow-hidden flex flex-col select-none ${
+            isIntroAnimating ? 'animate-desktop-enter' : ''
+          } ${
+            isProfileWallpaper ? 'wallpaper-profile' : ''
+          }`}
+          onClick={() => {
+            if (isStartOpen) closeStartMenu();
+            if (isWidgetsOpen) {
+              setIsWidgetsClosing(true);
+              setTimeout(() => {
+                setIsWidgetsOpen(false);
+                setIsWidgetsClosing(false);
+              }, 250);
+            }
+          }}
+        >
+          {/* Cyber Grid pattern lines if cyber-grid theme is active */}
+          {wallpaper === 'cyber-grid' && (
+            <div 
+              style={{ 
+                backgroundImage: 'radial-gradient(circle, rgba(0, 120, 212, 0.1) 1px, transparent 1px)',
+                backgroundSize: '24px 24px'
+              }}
+              className="absolute inset-0 pointer-events-none"
+            />
+          )}
+
+          {/* Main Desktop Canvas Area */}
+          <main className="flex-1 relative p-4" id="desktop-canvas" style={{ zIndex: 1 }}>
+            {/* Desktop Shortcuts */}
+            <div className="absolute top-4 left-4 flex flex-col gap-4">
+              {desktopShortcuts.map((shortcut, idx) => (
+                <button
+                  key={shortcut.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (shortcut.onClick) {
+                      shortcut.onClick();
+                    } else {
+                      openWindow(shortcut.id);
+                    }
+                  }}
+                  className={`desktop-icon w-20 h-20 flex flex-col items-center justify-center rounded transition-all duration-150 border border-transparent hover:bg-white/10 hover:border-white/10 active:scale-95 group focus:bg-white/10 focus:border-white/20 ${
+                    isIntroAnimating ? 'animate-slide-up' : ''
+                  }`}
+                  style={{ animationDelay: `${idx * 60}ms` }}
+                >
+                  <div className="mb-1.5 transform group-hover:scale-110 transition-transform duration-200">
+                    {shortcut.icon}
+                  </div>
+                  <span className="text-[10px] text-white text-center font-medium drop-shadow-md truncate w-full px-1">
+                    {shortcut.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Windows Rendering */}
+            {windows.map((w) => (
+              <Window
+                key={w.id}
+                id={w.id}
+                title={w.title}
+                icon={w.icon}
+                isOpen={w.isOpen}
+                isMinimized={w.isMinimized}
+                isMaximized={w.isMaximized}
+                isActive={activeWindowId === w.id}
+                zIndex={w.zIndex}
+                defaultX={w.defaultX}
+                defaultY={w.defaultY}
+                defaultWidth={w.defaultWidth}
+                defaultHeight={w.defaultHeight}
+                darkMode={darkMode}
+                deviceType={deviceType}
+                onClose={() => closeWindow(w.id)}
+                onMinimize={() => minimizeWindow(w.id)}
+                onMaximize={() => maximizeWindow(w.id)}
+                onFocus={() => focusWindow(w.id)}
+              >
+                {/* Render app child dynamically */}
+                {w.id === 'notepad' && <NotepadApp darkMode={darkMode} />}
+                {w.id === 'explorer' && <FileExplorerApp darkMode={darkMode} deviceType={deviceType} />}
+                {w.id === 'terminal' && (
+                  <TerminalApp
+                    darkMode={darkMode}
+                    onClose={() => closeWindow('terminal')}
+                    onThemeChange={(theme) => setWallpaper(theme)}
+                  />
+                )}
+                {w.id === 'settings' && (
+                  <SettingsApp
+                    currentTheme={wallpaper}
+                    onThemeChange={(theme) => setWallpaper(theme)}
+                    soundEnabled={soundEnabled}
+                    onToggleSound={() => setSoundEnabled(!soundEnabled)}
+                    darkMode={darkMode}
+                    onToggleDarkMode={() => {
+                      setDarkMode(!darkMode);
+                      playSynthSound('beep');
+                    }}
+                    deviceType={deviceType}
+                  />
+                )}
+                {w.id === 'achievements' && (
+                  <AchievementsApp darkMode={darkMode} initialFocus={achievementFocus} />
+                )}
+                {w.id === 'music' && <MusicPlayerApp darkMode={darkMode} />}
+              </Window>
+            ))}
+          </main>
+
+          {/* Widgets Panel */}
+          <WidgetsPanel
+            isOpen={isWidgetsOpen}
+            isClosing={isWidgetsClosing}
+            darkMode={darkMode}
+          />
+
+          {/* Start Menu Popup */}
+          <StartMenu
+            isOpen={isStartOpen}
+            isClosing={isStartClosing}
+            onClose={closeStartMenu}
+            onOpenApp={openWindow}
+            darkMode={darkMode}
+            deviceType={deviceType}
+            onTriggerPower={triggerPowerAction}
+          />
+
+          {/* Taskbar Component */}
+          <Taskbar
+            windows={windows.map(w => ({
+              id: w.id,
+              title: w.title,
+              isOpen: w.isOpen,
+              isMinimized: w.isMinimized,
+              isActive: activeWindowId === w.id,
+              icon: w.icon
+            }))}
+            onToggleWindow={handleTaskbarToggle}
+            onStartToggle={toggleStartMenu}
+            onWidgetsToggle={toggleWidgets}
+            isStartOpen={isStartOpen}
+            darkMode={darkMode}
+          />
+        </div>
+      ) : (
+        <AndroidSystem
+          darkMode={darkMode}
+          wallpaper={wallpaper}
+          wallpaperStyles={wallpaperStyles}
+          soundEnabled={soundEnabled}
+          playSynthSound={playSynthSound}
+          windows={windows}
+          setWindows={setWindows}
+          activeWindowId={activeWindowId}
+          setActiveWindowId={setActiveWindowId}
+          deviceType={deviceType}
+          setWallpaper={setWallpaper}
+          setDarkMode={setDarkMode}
+          setSoundEnabled={setSoundEnabled}
+          triggerPowerAction={triggerPowerAction}
         />
       )}
-
-      {/* Main Desktop Canvas Area */}
-      <main className="flex-1 relative p-4" id="desktop-canvas" style={{ zIndex: 1 }}>
-        {/* Desktop Shortcuts */}
-        <div className="absolute top-4 left-4 flex flex-col gap-4">
-          {desktopShortcuts.map((shortcut, idx) => (
-            <button
-              key={shortcut.id}
-              onClick={(e) => {
-                e.stopPropagation();
-                shortcut.onClick ? shortcut.onClick() : openWindow(shortcut.id);
-              }}
-              className={`desktop-icon w-20 h-20 flex flex-col items-center justify-center rounded transition-all duration-150 border border-transparent hover:bg-white/10 hover:border-white/10 active:scale-95 group focus:bg-white/10 focus:border-white/20 ${
-                isIntroAnimating ? 'animate-slide-up' : ''
-              }`}
-              style={{ animationDelay: `${idx * 60}ms` }}
-            >
-              <div className="mb-1.5 transform group-hover:scale-110 transition-transform duration-200">
-                {shortcut.icon}
-              </div>
-              <span className="text-[10px] text-white text-center font-medium drop-shadow-md truncate w-full px-1">
-                {shortcut.name}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* Windows Rendering */}
-        {windows.map((w) => (
-          <Window
-            key={w.id}
-            id={w.id}
-            title={w.title}
-            icon={w.icon}
-            isOpen={w.isOpen}
-            isMinimized={w.isMinimized}
-            isMaximized={w.isMaximized}
-            isActive={activeWindowId === w.id}
-            zIndex={w.zIndex}
-            defaultX={w.defaultX}
-            defaultY={w.defaultY}
-            defaultWidth={w.defaultWidth}
-            defaultHeight={w.defaultHeight}
-            darkMode={darkMode}
-            onClose={() => closeWindow(w.id)}
-            onMinimize={() => minimizeWindow(w.id)}
-            onMaximize={() => maximizeWindow(w.id)}
-            onFocus={() => focusWindow(w.id)}
-          >
-            {/* Render app child dynamically */}
-            {w.id === 'notepad' && <NotepadApp darkMode={darkMode} />}
-            {w.id === 'explorer' && <FileExplorerApp darkMode={darkMode} />}
-            {w.id === 'terminal' && (
-              <TerminalApp
-                darkMode={darkMode}
-                onClose={() => closeWindow('terminal')}
-                onThemeChange={(theme) => setWallpaper(theme)}
-              />
-            )}
-            {w.id === 'settings' && (
-              <SettingsApp
-                currentTheme={wallpaper}
-                onThemeChange={(theme) => setWallpaper(theme)}
-                soundEnabled={soundEnabled}
-                onToggleSound={() => setSoundEnabled(!soundEnabled)}
-                darkMode={darkMode}
-                onToggleDarkMode={() => {
-                  setDarkMode(!darkMode);
-                  playSynthSound('beep');
-                }}
-              />
-            )}
-            {w.id === 'achievements' && (
-              <AchievementsApp darkMode={darkMode} initialFocus={achievementFocus} />
-            )}
-            {w.id === 'music' && <MusicPlayerApp darkMode={darkMode} />}
-          </Window>
-        ))}
-      </main>
-
-      {/* Widgets Panel */}
-      <WidgetsPanel
-        isOpen={isWidgetsOpen}
-        isClosing={isWidgetsClosing}
-        darkMode={darkMode}
-      />
-
-      {/* Start Menu Popup */}
-      <StartMenu
-        isOpen={isStartOpen}
-        isClosing={isStartClosing}
-        onClose={closeStartMenu}
-        onOpenApp={openWindow}
-        darkMode={darkMode}
-        onTriggerPower={triggerPowerAction}
-      />
-
-      {/* Taskbar Component */}
-      <Taskbar
-        windows={windows.map(w => ({
-          id: w.id,
-          title: w.title,
-          isOpen: w.isOpen,
-          isMinimized: w.isMinimized,
-          isActive: activeWindowId === w.id,
-          icon: w.icon
-        }))}
-        onToggleWindow={handleTaskbarToggle}
-        onStartToggle={toggleStartMenu}
-        onWidgetsToggle={toggleWidgets}
-        isStartOpen={isStartOpen}
-        darkMode={darkMode}
-      />
-    </div>
     </MonitorFrame>
   );
 }

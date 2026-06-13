@@ -11,6 +11,7 @@ interface StartMenuProps {
   onClose: () => void;
   onOpenApp: (id: string) => void;
   darkMode: boolean;
+  deviceType?: 'monitor' | 'tablet' | 'mobile';
   onTriggerPower: (action: 'shutdown' | 'restart') => void;
 }
 
@@ -20,6 +21,7 @@ export const StartMenu: React.FC<StartMenuProps> = ({
   onClose,
   onOpenApp,
   darkMode,
+  deviceType = 'monitor',
   onTriggerPower,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,11 +31,13 @@ export const StartMenu: React.FC<StartMenuProps> = ({
   // Trigger animation lock when menu is opened
   React.useEffect(() => {
     if (isOpen) {
-      setAnimateIntro(true);
       const timer = setTimeout(() => {
         setAnimateIntro(false);
       }, 600);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        setAnimateIntro(true);
+      };
     }
   }, [isOpen]);
 
@@ -79,8 +83,16 @@ export const StartMenu: React.FC<StartMenuProps> = ({
           setShowPowerOptions(false);
         }
       }}
-      style={{ zIndex: 998 }}
-      className={`absolute bottom-14 left-1/2 transform -translate-x-1/2 w-[90%] max-w-[580px] h-[550px] rounded-xl glass-panel shadow-activeWindow flex flex-col border overflow-hidden ${
+      style={{
+        zIndex: 998,
+        maxHeight: 'calc(100vh - 120px)',
+        overflow: 'hidden',
+      }}
+      className={`absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 ${
+        deviceType === 'mobile' ? 'w-[95%] max-w-[380px]' :
+        deviceType === 'tablet' ? 'w-[92%] max-w-[500px]' :
+        'w-[90%] max-w-[580px]'
+      } rounded-xl glass-panel shadow-activeWindow flex flex-col border ${
         isClosing ? 'animate-start-close' : 'animate-start-open'
       } ${
         darkMode 
@@ -89,36 +101,36 @@ export const StartMenu: React.FC<StartMenuProps> = ({
       }`}
     >
       {/* Search Input */}
-      <div className="p-6 pb-4">
+      <div className={deviceType === 'mobile' ? 'p-3 pb-2' : 'p-6 pb-4'}>
         <div className={`flex items-center gap-3 px-3 py-2 rounded-md border text-sm ${
           darkMode 
             ? 'bg-[rgba(20,20,20,0.5)] border-[rgba(255,255,255,0.08)] focus-within:border-win11-blue' 
             : 'bg-white border-gray-300 focus-within:border-win11-blue'
         }`}>
-          <Search size={16} className="text-gray-400" />
+          <Search size={deviceType === 'mobile' ? 14 : 16} className="text-gray-400" />
           <input
             type="text"
-            placeholder="Type here to search apps, files or links..."
+            placeholder={deviceType === 'mobile' ? 'Search...' : 'Type here to search apps, files or links...'}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-transparent border-none outline-none text-xs"
+            className={`w-full bg-transparent border-none outline-none ${deviceType === 'mobile' ? 'text-[11px]' : 'text-xs'}`}
             autoFocus
           />
         </div>
       </div>
 
       {/* Main Grid Content */}
-      <div className="flex-1 px-8 overflow-y-auto">
+      <div className={`flex-1 ${deviceType === 'mobile' ? 'px-3' : 'px-8'} overflow-y-auto`}>
         {/* Pinned Section */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between text-xs font-semibold px-2 mb-3">
+        <div className={deviceType === 'mobile' ? 'mb-3' : 'mb-6'}>
+          <div className={`flex items-center justify-between ${deviceType === 'mobile' ? 'text-[10px]' : 'text-xs'} font-semibold px-2 mb-3`}>
             <span>Pinned</span>
-            <span className={`text-[10px] px-2 py-0.5 rounded cursor-pointer ${
+            <span className={`text-[9px] px-2 py-0.5 rounded cursor-pointer ${
               darkMode ? 'bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)]' : 'bg-gray-100 hover:bg-gray-200'
             }`}>All apps</span>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-y-4 gap-x-2">
+          <div className={`grid ${deviceType === 'mobile' ? 'grid-cols-3 gap-y-2 gap-x-1' : 'grid-cols-3 sm:grid-cols-5 gap-y-4 gap-x-2'}`}>
             {/* Mock Local Apps */}
             {filteredPinned.map((app, idx) => (
               <button
