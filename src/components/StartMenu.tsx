@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Search, FileText, Folder, Terminal, Settings, Mail, 
+  Search, FileText, Folder, Terminal, Settings, Share2, 
   Download, Power, KeyRound, Trophy, Music
 } from 'lucide-react';
 import { Github, Linkedin } from './icons';
@@ -50,7 +50,7 @@ export const StartMenu: React.FC<StartMenuProps> = ({
     { id: 'settings', name: 'Settings', icon: <Settings size={22} className="text-blue-500" /> },
     { id: 'achievements', name: 'Achievements', icon: <Trophy size={22} className="text-amber-400" /> },
     { id: 'music', name: 'Music Player', icon: <Music size={22} className="text-purple-500" /> },
-    { id: 'mail', name: 'Contact Me', icon: <Mail size={22} className="text-rose-500" /> },
+    { id: 'getintouch', name: 'Get in Touch', icon: <Share2 size={22} className="text-cyan-500" /> },
   ];
 
   const externalLinks = [

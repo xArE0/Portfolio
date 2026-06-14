@@ -1,0 +1,14 @@
+{
+  "name": "testproj",
+  "description": "The high-performance API server powering Urbanfinder. Built using Django Rest Framework, PostgreSQL, and Redis cache. Features full authentication flow, API seeding commands, search filtering algorithms, and bookmark tracking.",
+  "technologies": [
+    "Python",
+    "Django",
+    "REST Framework",
+    "PostgreSQL",
+    "Redis",
+    "Docker"
+  ],
+  "githubUrl": "https://github.com",
+  "order": 2
+}

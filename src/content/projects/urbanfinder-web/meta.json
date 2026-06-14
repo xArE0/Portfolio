@@ -1,0 +1,8 @@
+{
+  "name": "urbanfinder-web",
+  "description": "A premium property browsing and filtering platform. Features real-time listings, advanced search filters, bookmarks, and detailed property pages with layout designs.",
+  "technologies": ["React.js", "TypeScript", "Tailwind CSS", "Vite", "RESTful API"],
+  "githubUrl": "https://github.com",
+  "liveUrl": "https://example.com",
+  "order": 1
+}

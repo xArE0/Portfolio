@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
-  FileText, Folder, Terminal, Settings, Mail, 
+  FileText, Folder, Terminal, Settings, Share2, 
   Power, RotateCw, Trophy, Music
 } from 'lucide-react';
 
@@ -14,6 +14,7 @@ import { TerminalApp } from './components/apps/TerminalApp';
 import { SettingsApp } from './components/apps/SettingsApp';
 import { AchievementsApp } from './components/apps/AchievementsApp';
 import { MusicPlayerApp } from './components/apps/MusicPlayerApp';
+import { GetInTouchApp } from './components/apps/GetInTouchApp';
 import { MonitorFrame } from './components/MonitorFrame';
 import { AndroidSystem } from './components/AndroidSystem';
 
@@ -31,6 +32,14 @@ interface WindowItem {
   defaultWidth: number;
   defaultHeight: number;
 }
+
+interface DesktopShortcut {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  onClick?: () => void;
+}
+
 
 // Hash route mapping
 const HASH_ROUTES: Record<string, string> = {
@@ -294,6 +303,19 @@ export default function App() {
       defaultY: 40,
       defaultWidth: 480,
       defaultHeight: 560
+    },
+    {
+      id: 'getintouch',
+      title: '📬 Get In Touch',
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      zIndex: 10,
+      icon: <Share2 size={14} className="text-cyan-500" />,
+      defaultX: 150,
+      defaultY: 35,
+      defaultWidth: 680,
+      defaultHeight: 500
     }
   ]);
 
@@ -497,21 +519,14 @@ export default function App() {
   };
 
   // Desktop shortcuts
-  const desktopShortcuts = [
+  const desktopShortcuts: DesktopShortcut[] = [
     { id: 'notepad', name: 'About Me', icon: <FileText size={32} className="text-amber-500 drop-shadow-md" /> },
     { id: 'explorer', name: 'Projects', icon: <Folder size={32} className="text-yellow-500 drop-shadow-md" /> },
     { id: 'achievements', name: 'Achievements', icon: <Trophy size={32} className="text-amber-400 drop-shadow-md" /> },
     { id: 'music', name: 'Music', icon: <Music size={32} className="text-purple-500 drop-shadow-md" /> },
     { id: 'terminal', name: 'Terminal', icon: <Terminal size={32} className="text-emerald-500 drop-shadow-md" /> },
     { id: 'settings', name: 'Settings', icon: <Settings size={32} className="text-blue-500 drop-shadow-md" /> },
-    {
-      id: 'mail',
-      name: 'Mail Form',
-      icon: <Mail size={32} className="text-rose-500 drop-shadow-md" />,
-      onClick: () => {
-        window.location.href = 'mailto:avishek.shrestha@example.com';
-      }
-    }
+    { id: 'getintouch', name: 'Get in Touch', icon: <Share2 size={32} className="text-cyan-500 drop-shadow-md" /> }
   ];
 
   // Wallpaper CSS maps
@@ -747,6 +762,7 @@ export default function App() {
                   <AchievementsApp darkMode={darkMode} initialFocus={achievementFocus} />
                 )}
                 {w.id === 'music' && <MusicPlayerApp darkMode={darkMode} />}
+                {w.id === 'getintouch' && <GetInTouchApp darkMode={darkMode} />}
               </Window>
             ))}
           </main>

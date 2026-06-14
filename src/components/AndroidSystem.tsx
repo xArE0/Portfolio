@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Wifi, Volume2, Battery, Search, ArrowLeft, X, 
-  Trophy, FileText, Folder, Terminal, Settings, Music, Mail
+  Trophy, FileText, Folder, Terminal, Settings, Music, Share2
 } from 'lucide-react';
 
 import { NotepadApp } from './apps/NotepadApp';
@@ -10,6 +10,7 @@ import { TerminalApp } from './apps/TerminalApp';
 import { SettingsApp } from './apps/SettingsApp';
 import { AchievementsApp } from './apps/AchievementsApp';
 import { MusicPlayerApp } from './apps/MusicPlayerApp';
+import { GetInTouchApp } from './apps/GetInTouchApp';
 
 // Define WindowItem matching App.tsx
 interface WindowItem {
@@ -172,10 +173,10 @@ export const AndroidSystem: React.FC<AndroidSystemProps> = ({
       bg: 'bg-gradient-to-tr from-purple-600 to-purple-400',
       icon: <Music size={24} className="text-white" />
     },
-    mail: {
-      name: 'Contact',
-      bg: 'bg-gradient-to-tr from-rose-600 to-rose-400',
-      icon: <Mail size={24} className="text-white" />
+    getintouch: {
+      name: 'Connect',
+      bg: 'bg-gradient-to-tr from-cyan-600 to-cyan-400',
+      icon: <Share2 size={24} className="text-white" />
     }
   };
 
@@ -195,12 +196,7 @@ export const AndroidSystem: React.FC<AndroidSystemProps> = ({
     { id: 'music', onClick: () => launchApp('music') },
     { id: 'terminal', onClick: () => launchApp('terminal') },
     { id: 'settings', onClick: () => launchApp('settings') },
-    {
-      id: 'mail',
-      onClick: () => {
-        window.open('mailto:avishek.shrestha@example.com', '_self');
-      }
-    }
+    { id: 'getintouch', onClick: () => launchApp('getintouch') }
   ];
 
   // Dock items (middle button is App Drawer)
@@ -402,6 +398,7 @@ export const AndroidSystem: React.FC<AndroidSystemProps> = ({
                 <AchievementsApp darkMode={darkMode} />
               )}
               {activeApp.id === 'music' && <MusicPlayerApp darkMode={darkMode} />}
+              {activeApp.id === 'getintouch' && <GetInTouchApp darkMode={darkMode} />}
             </div>
           </div>
         )}

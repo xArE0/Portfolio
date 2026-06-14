@@ -108,7 +108,7 @@ export const Window: React.FC<WindowProps> = ({
 
   // Handle open/close/minimize transitions
   useEffect(() => {
-    let timer: NodeJS.Timeout | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     if (isOpen && !isMinimized) {
       setTimeout(() => {
         setShouldRender(true);

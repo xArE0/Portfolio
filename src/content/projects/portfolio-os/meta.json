@@ -1,0 +1,8 @@
+{
+  "name": "portfolio-os",
+  "description": "Interactive Windows 11 desktop simulation portfolio. Drag/resize/minimize/maximize windows, customize background theme, run terminal commands, write notes, and browse projects dynamically.",
+  "technologies": ["React.js", "TypeScript", "Tailwind CSS", "Vite", "HTML5/CSS3"],
+  "githubUrl": "https://github.com",
+  "liveUrl": "https://example.com",
+  "order": 3
+}
