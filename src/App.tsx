@@ -84,9 +84,9 @@ export default function App() {
   const playSynthSound = useCallback((type: 'startup' | 'shutdown' | 'beep') => {
     if (!soundEnabled) return;
     try {
-      const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!AudioContext) return;
-      const ctx = new AudioContext();
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
 
       if (type === 'startup') {
         const now = ctx.currentTime;
