@@ -62,18 +62,16 @@ export const WidgetsPanel: React.FC<WidgetsPanelProps> = ({ isOpen, isClosing, d
   const WeatherIcon = weather.icon;
   const quote = devQuotes[quoteIdx];
 
-  const cardClass = `rounded-xl p-4 border transition-all duration-200 ${
-    darkMode
+  const cardClass = `rounded-xl p-4 border transition-all duration-200 ${darkMode
       ? 'bg-[rgba(30,30,30,0.8)] border-neutral-700/50 hover:border-neutral-600'
       : 'bg-white/80 border-gray-200 hover:border-gray-300'
-  }`;
+    }`;
 
   return (
     <div
       style={{ zIndex: 997 }}
-      className={`absolute left-0 top-0 bottom-12 w-[340px] sm:w-[380px] overflow-y-auto p-4 glass-panel ${
-        darkMode ? 'glass-panel-dark' : 'glass-panel-light'
-      } ${isClosing ? 'animate-widgets-out' : 'animate-widgets-in'}`}
+      className={`absolute left-0 top-0 bottom-12 w-[340px] sm:w-[380px] overflow-y-auto p-4 glass-panel ${darkMode ? 'glass-panel-dark' : 'glass-panel-light'
+        } ${isClosing ? 'animate-widgets-out' : 'animate-widgets-in'}`}
     >
       {/* Header */}
       <div className="mb-4 px-1">
@@ -89,9 +87,8 @@ export const WidgetsPanel: React.FC<WidgetsPanelProps> = ({ isOpen, isClosing, d
         style={{ animationDelay: '0.05s' }}
       >
         <div className="flex items-center justify-between mb-3">
-          <span className={`text-[10px] font-bold uppercase tracking-wider ${
-            darkMode ? 'text-gray-500' : 'text-gray-400'
-          }`}>
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${darkMode ? 'text-gray-500' : 'text-gray-400'
+            }`}>
             Weather — Kathmandu
           </span>
           <Cloud size={12} className="text-gray-400" />
@@ -118,9 +115,8 @@ export const WidgetsPanel: React.FC<WidgetsPanelProps> = ({ isOpen, isClosing, d
         style={{ animationDelay: '0.1s' }}
       >
         <div className="flex items-center justify-between mb-3">
-          <span className={`text-[10px] font-bold uppercase tracking-wider ${
-            darkMode ? 'text-gray-500' : 'text-gray-400'
-          }`}>
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${darkMode ? 'text-gray-500' : 'text-gray-400'
+            }`}>
             Quick Stats
           </span>
           <Zap size={12} className="text-amber-500" />
@@ -153,9 +149,8 @@ export const WidgetsPanel: React.FC<WidgetsPanelProps> = ({ isOpen, isClosing, d
         style={{ animationDelay: '0.15s' }}
       >
         <div className="flex items-center justify-between mb-3">
-          <span className={`text-[10px] font-bold uppercase tracking-wider ${
-            darkMode ? 'text-gray-500' : 'text-gray-400'
-          }`}>
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${darkMode ? 'text-gray-500' : 'text-gray-400'
+            }`}>
             GitHub Activity
           </span>
           <GitBranch size={12} className="text-emerald-500" />
@@ -164,21 +159,18 @@ export const WidgetsPanel: React.FC<WidgetsPanelProps> = ({ isOpen, isClosing, d
           {githubActivity.map((item, idx) => (
             <div
               key={idx}
-              className={`flex items-start gap-2.5 px-2 py-1.5 rounded-lg transition-colors ${
-                darkMode ? 'hover:bg-neutral-800/60' : 'hover:bg-gray-50'
-              }`}
+              className={`flex items-start gap-2.5 px-2 py-1.5 rounded-lg transition-colors ${darkMode ? 'hover:bg-neutral-800/60' : 'hover:bg-gray-50'
+                }`}
             >
               <div className="mt-0.5">
-                <div className={`w-2 h-2 rounded-full ${
-                  idx === 0 ? 'bg-emerald-500' : (darkMode ? 'bg-neutral-600' : 'bg-gray-300')
-                }`} />
+                <div className={`w-2 h-2 rounded-full ${idx === 0 ? 'bg-emerald-500' : (darkMode ? 'bg-neutral-600' : 'bg-gray-300')
+                  }`} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-[11px] truncate">{item.repo}</span>
-                  <span className={`text-[8px] px-1 py-0.5 rounded font-mono ${
-                    darkMode ? 'bg-neutral-800 text-gray-400' : 'bg-gray-100 text-gray-500'
-                  }`}>
+                  <span className={`text-[8px] px-1 py-0.5 rounded font-mono ${darkMode ? 'bg-neutral-800 text-gray-400' : 'bg-gray-100 text-gray-500'
+                    }`}>
                     {item.branch}
                   </span>
                 </div>
@@ -197,24 +189,21 @@ export const WidgetsPanel: React.FC<WidgetsPanelProps> = ({ isOpen, isClosing, d
         style={{ animationDelay: '0.2s' }}
       >
         <div className="flex items-center justify-between mb-3">
-          <span className={`text-[10px] font-bold uppercase tracking-wider ${
-            darkMode ? 'text-gray-500' : 'text-gray-400'
-          }`}>
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${darkMode ? 'text-gray-500' : 'text-gray-400'
+            }`}>
             Dev Quote
           </span>
           <Quote size={12} className="text-cyan-500" />
         </div>
         <div key={quoteIdx} className="animate-fade-in">
-          <p className={`text-[12px] italic leading-relaxed mb-2 ${
-            darkMode ? 'text-gray-300' : 'text-gray-600'
-          }`}>
+          <p className={`text-[12px] italic leading-relaxed mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'
+            }`}>
             "{quote.text}"
           </p>
           <div className="flex items-center gap-1.5">
             <Star size={10} className="text-amber-500" />
-            <span className={`text-[10px] font-medium ${
-              darkMode ? 'text-gray-500' : 'text-gray-400'
-            }`}>
+            <span className={`text-[10px] font-medium ${darkMode ? 'text-gray-500' : 'text-gray-400'
+              }`}>
               — {quote.author}
             </span>
           </div>
