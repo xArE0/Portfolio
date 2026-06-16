@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Trophy, X, ChevronLeft, ChevronRight, FileText, ExternalLink, Image, Folder } from 'lucide-react';
-import { loadAchievements, type AchievementItem, type MediaFile } from '../../contentLoader';
+import { Trophy, X, ChevronLeft, ChevronRight, FileText, Image, Folder } from 'lucide-react';
+import { loadAchievements, type AchievementItem } from '../../contentLoader';
 
 interface AchievementsAppProps {
   darkMode: boolean;
@@ -161,7 +161,17 @@ AchievementCard.displayName = 'AchievementCard';
 export const AchievementsApp: React.FC<AchievementsAppProps> = ({ darkMode, initialFocus }) => {
   const achievements = useMemo(() => loadAchievements(), []);
   const [activeFilter, setActiveFilter] = useState<'all' | 'certificate' | 'award'>('all');
-  const [lightboxItem, setLightboxItem] = useState<{ achievement: AchievementItem; mediaIndex: number } | null>(null);
+  const [lightboxItem, setLightboxItem] = useState<{ achievement: AchievementItem; mediaIndex: number } | null>(
+    () => {
+      if (initialFocus) {
+        const found = achievements.find(a => a.id === initialFocus);
+        if (found && found.mediaFiles.length > 0) {
+          return { achievement: found, mediaIndex: 0 };
+        }
+      }
+      return null;
+    }
+  );
   const [animateIntro, setAnimateIntro] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
