@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Github } from '../icons';
 import { loadProjects, type MediaFile } from '../../contentLoader';
+import { CONTACT } from '../../lib/contact';
 
 interface FileExplorerAppProps {
   darkMode: boolean;
@@ -40,11 +41,9 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   
-  // Lightbox for media preview
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [lightboxType, setLightboxType] = useState<'image' | 'video' | 'pdf'>('image');
 
-  // Navigation is a stack of breadcrumbs
   const [navStack, setNavStack] = useState<BreadcrumbEntry[]>([
     { type: 'category', category: 'projects', label: 'Projects' }
   ]);
@@ -52,12 +51,9 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
 
   const currentNav = navStack[navStack.length - 1];
 
-  // Load projects dynamically from contentLoader
   const projects = useMemo(() => loadProjects(), []);
 
-  // Static items for skills, documents, desktop
   const staticItems: StaticItem[] = useMemo(() => [
-    // --- SKILLS ---
     {
       id: 'skill-languages',
       name: 'Languages.json',
@@ -76,7 +72,6 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
       fileContent: `{\n  "frontend": ["React.js", "Next.js", "Tailwind CSS"],\n  "backend": ["Django", "FastAPI", "Express.js"],\n  "databases": ["PostgreSQL", "MongoDB", "MySQL", "Redis"]\n}`,
       icon: <Code className="text-indigo-500" size={32} />
     },
-    // --- DOCUMENTS ---
     {
       id: 'doc-achievements',
       name: 'achievements.txt',
@@ -92,10 +87,9 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
       type: 'file',
       category: 'documents',
       description: 'How to get in touch with me.',
-      fileContent: `📧 CONTACT CHANNELS\n-------------------\n\n- Email: avishek.shrestha@example.com\n- LinkedIn: linkedin.com/in/avishek-shrestha\n- GitHub: github.com/avishek-shrestha\n- Location: Kathmandu, Nepal`,
+      fileContent: `📧 CONTACT CHANNELS\n-------------------\n\n- Email: ${CONTACT.email}\n- LinkedIn: ${CONTACT.linkedin}\n- GitHub: ${CONTACT.github}\n- Location: ${CONTACT.location}`,
       icon: <FileText className="text-gray-400" size={32} />
     },
-    // --- DESKTOP SHORTCUTS ---
     {
       id: 'desk-notepad',
       name: 'Notepad.lnk',
@@ -116,7 +110,6 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
     }
   ], []);
 
-  // Navigation handlers
   const navigateTo = (entry: BreadcrumbEntry) => {
     setSelectedItemId(null);
     setHistoryFuture([]);
@@ -149,7 +142,6 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
     setNavStack(futureStack);
   };
 
-  // Get the icon for a media file
   const getMediaIcon = (file: MediaFile) => {
     switch (file.type) {
       case 'image': return <Image className="text-blue-400" size={32} />;
@@ -159,10 +151,8 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
     }
   };
 
-  // What to render in the main content area depends on current nav
   const renderContent = () => {
     if (currentNav.type === 'project-folder') {
-      // Inside a project folder — show media files
       const project = projects.find(p => p.id === currentNav.projectId);
       if (!project) return <div className="col-span-full py-8 text-center text-gray-500">Project not found.</div>;
 
@@ -174,8 +164,7 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
         return (
           <div className="col-span-full py-8 text-center text-gray-500 flex flex-col items-center gap-2">
             <Folder size={28} className="opacity-30" />
-            <span>No media files in this project yet.</span>
-            <span className="text-[9px] opacity-50">Add images, PDFs, or videos to the project folder.</span>
+            <span>This folder is empty.</span>
           </div>
         );
       }
@@ -195,7 +184,6 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
               : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
           }`}
         >
-          {/* Thumbnail for images */}
           {file.type === 'image' ? (
             <div className="w-full h-20 rounded overflow-hidden mb-2 bg-black/10">
               <img src={file.path} alt={file.name} className="w-full h-full object-cover" loading="lazy" />
@@ -211,11 +199,9 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
       ));
     }
 
-    // Category view
     const category = currentNav.category || 'projects';
 
     if (category === 'projects') {
-      // Show project folders
       const filtered = projects.filter(p =>
         p.meta.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -249,7 +235,6 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
       ));
     }
 
-    // Static categories (skills, documents, desktop)
     const filtered = staticItems.filter(item =>
       item.category === category &&
       item.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -275,9 +260,7 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
     ));
   };
 
-  // Get selected item details for sidebar
   const getSelectedDetails = () => {
-    // If inside a project folder, show that project's details by default in the sidebar/preview pane
     if (currentNav.type === 'project-folder') {
       const project = projects.find(p => p.id === currentNav.projectId);
       if (project) {
@@ -290,14 +273,13 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
           githubUrl: project.meta.githubUrl,
           liveUrl: project.meta.liveUrl,
           fileContent: undefined,
-          onOpen: undefined, // Already open
+          onOpen: undefined,
         };
       }
     }
 
     if (!selectedItemId) return null;
 
-    // Check if it's a project
     const project = projects.find(p => p.id === selectedItemId);
     if (project) {
       return {
@@ -317,7 +299,6 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
       };
     }
 
-    // Check static items
     const staticItem = staticItems.find(i => i.id === selectedItemId);
     if (staticItem) {
       return {
@@ -348,7 +329,6 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
     <div className={`flex flex-col h-full w-full text-xs select-none ${
       darkMode ? 'bg-[#1c1c1c] text-[#e3e3e3]' : 'bg-[#f3f3f3] text-gray-800'
     }`}>
-      {/* File Explorer Header toolbar */}
       <div className={`flex items-center justify-between px-3 py-2 border-b gap-4 select-none ${
         darkMode ? 'bg-[#252526] border-[#2d2d2d]' : 'bg-[#e9e9e9] border-gray-200'
       }`}>
@@ -395,8 +375,6 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
           <button className={`p-1 rounded transition-colors ${darkMode ? 'hover:bg-neutral-700' : 'hover:bg-gray-300'}`}>
             <RefreshCw size={12} />
           </button>
-          
-          {/* Breadcrumbs Path */}
           <div className={`flex items-center px-2 py-1 rounded border gap-1.5 ml-2 text-[10.5px] truncate max-w-[280px] sm:max-w-md ${
             darkMode 
               ? 'bg-[rgba(30,30,30,0.5)] border-[rgba(255,255,255,0.06)]' 
@@ -407,8 +385,6 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
             <span className="truncate">This PC &gt; {formatBreadcrumb()}</span>
           </div>
         </div>
-
-        {/* Search Input */}
         <div className={`flex items-center gap-2 px-2 py-1 rounded border max-w-[150px] sm:max-w-[200px] ${
           darkMode 
             ? 'bg-[rgba(30,30,30,0.5)] border-[rgba(255,255,255,0.06)] focus-within:border-win11-blue' 
@@ -424,18 +400,13 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
           />
         </div>
       </div>
-
-      {/* Main Grid View */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Mobile Sidebar Drawer Backdrop */}
         {isMobile && isSidebarOpen && (
           <div 
             onClick={() => setIsSidebarOpen(false)}
             className="absolute inset-0 bg-black/60 backdrop-blur-[1px] z-40 animate-fade-in"
           />
         )}
-
-        {/* Left Sidebar */}
         <div className={`${
           isMobile 
             ? `absolute top-0 bottom-0 left-0 w-[190px] z-50 shadow-2xl transition-transform duration-200 ${
@@ -477,13 +448,9 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
             );
           })}
         </div>
-
-        {/* Center Grid of items */}
         <div className="flex-1 p-3 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 content-start">
           {renderContent()}
         </div>
-
-        {/* Right Preview Pane */}
         {selectedDetails && (
           <div className={`${
             isMobile 
@@ -523,8 +490,6 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
             <div className="text-[11px] leading-relaxed text-gray-400 mb-3 text-center">
               {selectedDetails.typeLabel}
             </div>
-
-            {/* Open folder button for projects */}
             {selectedDetails.onOpen && (
               <button
                 onClick={selectedDetails.onOpen}
@@ -534,8 +499,6 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
                 <span>Open Folder</span>
               </button>
             )}
-
-            {/* Description */}
             {selectedDetails.description && (
               <div className="mb-4">
                 <div className="text-[10px] uppercase font-bold text-gray-500 mb-1 leading-tight">Description</div>
@@ -544,8 +507,6 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
                 </p>
               </div>
             )}
-
-            {/* Technologies */}
             {selectedDetails.technologies && (
               <div className="mb-4">
                 <div className="text-[10px] uppercase font-bold text-gray-500 mb-1">Tech Stack</div>
@@ -563,8 +524,6 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
                 </div>
               </div>
             )}
-
-            {/* File Contents */}
             {selectedDetails.fileContent && (
               <div className="mb-4">
                 <div className="text-[10px] uppercase font-bold text-gray-500 mb-1.5">File Contents</div>
@@ -575,8 +534,6 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
                 </pre>
               </div>
             )}
-
-            {/* Links / Actions */}
             {(selectedDetails.githubUrl || selectedDetails.liveUrl) && (
               <div className="mt-auto pt-4 flex flex-col gap-2">
                 {selectedDetails.githubUrl && (
@@ -610,8 +567,6 @@ export const FileExplorerApp: React.FC<FileExplorerAppProps> = ({ darkMode, devi
             )}
           </div>
         )}
-
-        {/* Lightbox for media preview */}
         {lightboxSrc && (
           <div
             className="absolute inset-0 z-50 flex items-center justify-center animate-fade-in"

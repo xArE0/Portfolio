@@ -1,165 +1,120 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { Power } from 'lucide-react';
+import type { DeviceType } from '../types';
+import { unlockSecret } from '../lib/secrets';
 
 interface MonitorFrameProps {
   children: React.ReactNode;
-  onPowerClick?: () => void;
+  deviceType: DeviceType;
 }
 
-type DeviceType = 'monitor' | 'tablet' | 'mobile';
+const SIDE_BUTTON = 'linear-gradient(180deg, #2a2a3c 0%, #1c1c2a 100%)';
 
-export const MonitorFrame: React.FC<MonitorFrameProps> = ({ children, onPowerClick }) => {
-  const [isMonitorOn, setIsMonitorOn] = useState(true);
-  const [deviceType, setDeviceType] = useState<DeviceType>('monitor');
+const PoweredOff: React.FC<{ label: string; size: number; className?: string }> = ({ label, size, className = '' }) => (
+  <div className={`absolute inset-0 bg-[#020205] z-[9999] flex flex-col items-center justify-center text-neutral-600 animate-fade-in font-mono tracking-wider ${className}`}>
+    <Power size={size} className="text-neutral-500 mb-2" />
+    <span>{label}</span>
+  </div>
+);
 
-  useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      if (width < 640) {
-        setDeviceType('mobile');
-      } else if (width < 1024) {
-        setDeviceType('tablet');
-      } else {
-        setDeviceType('monitor');
-      }
-    };
+export const MonitorFrame: React.FC<MonitorFrameProps> = ({ children, deviceType }) => {
+  const [isOn, setIsOn] = useState(true);
+  const [glitch, setGlitch] = useState(false);
+  const brandClicks = useRef(0);
+  const toggle = () => setIsOn(on => !on);
 
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const handleBrandClick = () => {
+    brandClicks.current += 1;
+    if (brandClicks.current % 5 !== 0) return;
+    setGlitch(true);
+    setTimeout(() => setGlitch(false), 1200);
+    unlockSecret('brand');
+  };
 
-  // Render Mobile Frame
   if (deviceType === 'mobile') {
     return (
       <div className="h-screen w-screen bg-gradient-to-b from-[#111119] to-[#08080e] flex items-center justify-center select-none overflow-hidden">
-        {/* Side buttons on the left of phone */}
         <div className="flex flex-col gap-3 mr-[-2px] z-10">
-          {/* Volume Up */}
-          <div className="w-[4px] h-10 rounded-l-sm" style={{ background: 'linear-gradient(180deg, #2a2a3c 0%, #1c1c2a 100%)', boxShadow: '-2px 0 4px rgba(0,0,0,0.4)' }} />
-          {/* Volume Down */}
-          <div className="w-[4px] h-10 rounded-l-sm" style={{ background: 'linear-gradient(180deg, #2a2a3c 0%, #1c1c2a 100%)', boxShadow: '-2px 0 4px rgba(0,0,0,0.4)' }} />
+          {[0, 1].map(i => (
+            <div key={i} className="w-[4px] h-10 rounded-l-sm" style={{ background: SIDE_BUTTON, boxShadow: '-2px 0 4px rgba(0,0,0,0.4)' }} />
+          ))}
         </div>
 
-        <div className="relative w-[90%] max-w-[380px] aspect-[9/20] rounded-[40px] overflow-hidden border-[12px] border-[#1e1e2d]" style={{ background: '#000' }}>
-          {/* Notch */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-[#000] rounded-b-3xl z-50" />
-          {/* Camera dot */}
+        <div className="relative w-[90%] max-w-[380px] aspect-[9/20] rounded-[40px] overflow-hidden border-[12px] border-[#1e1e2d] bg-black">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-black rounded-b-3xl z-50" />
           <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50">
             <div className="w-3 h-3 rounded-full bg-[#0d0d16] border border-[rgba(255,255,255,0.08)]">
               <div className="w-1 h-1 rounded-full bg-[#1a4f7c] absolute inset-1/2 -translate-x-1/2 -translate-y-1/2" />
             </div>
           </div>
-          {/* Content */}
-          <div className="w-full h-full relative overflow-hidden pt-8">
-            {children}
-          </div>
-          {/* Powered off overlay */}
-          {!isMonitorOn && (
-            <div className="absolute inset-0 bg-[#020205] z-[9999] flex flex-col items-center justify-center text-neutral-600 animate-fade-in font-mono text-[9px] tracking-wider">
-              <Power size={16} className="text-neutral-500 mb-2" />
-              <span>PHONE OFF</span>
-            </div>
-          )}
+          <div className="w-full h-full relative overflow-hidden pt-8">{children}</div>
+          {!isOn && <PoweredOff label="PHONE OFF" size={16} className="text-[9px]" />}
         </div>
 
-        {/* Physical power button on right side */}
-        <button
-          onClick={() => { setIsMonitorOn(!isMonitorOn); onPowerClick?.(); }}
-          title="Power"
-          className="ml-[-2px] z-10 active:scale-95 transition-transform"
-        >
-          <div className="w-[4px] h-14 rounded-r-sm" style={{ background: 'linear-gradient(180deg, #2a2a3c 0%, #1c1c2a 100%)', boxShadow: '2px 0 4px rgba(0,0,0,0.4)' }} />
+        <button onClick={toggle} title="Power" className="ml-[-2px] z-10 active:scale-95 transition-transform">
+          <div className="w-[4px] h-14 rounded-r-sm" style={{ background: SIDE_BUTTON, boxShadow: '2px 0 4px rgba(0,0,0,0.4)' }} />
         </button>
       </div>
     );
   }
 
-  // Render Tablet Frame
   if (deviceType === 'tablet') {
     return (
       <div className="h-screen w-screen bg-gradient-to-b from-[#111119] to-[#08080e] flex flex-col items-center justify-center select-none overflow-hidden">
-        {/* Top edge buttons row */}
         <div className="flex items-center gap-2 mb-[-2px] z-10 self-end pr-[6%]">
-          {/* Volume rocker */}
-          <div className="h-[5px] w-10 rounded-t-sm" style={{ background: 'linear-gradient(90deg, #2a2a3c 0%, #1c1c2a 100%)', boxShadow: '0 -2px 4px rgba(0,0,0,0.4)' }} />
-          {/* Power button */}
-          <button
-            onClick={() => { setIsMonitorOn(!isMonitorOn); onPowerClick?.(); }}
-            title="Power"
-            className="active:scale-95 transition-transform"
-          >
+          <div className="h-[5px] w-10 rounded-t-sm" style={{ background: SIDE_BUTTON, boxShadow: '0 -2px 4px rgba(0,0,0,0.4)' }} />
+          <button onClick={toggle} title="Power" className="active:scale-95 transition-transform">
             <div className="h-[5px] w-6 rounded-t-sm" style={{ background: 'linear-gradient(90deg, #3a3a50 0%, #2a2a3c 100%)', boxShadow: '0 -2px 6px rgba(0,0,0,0.5)' }} />
           </button>
         </div>
 
-        <div className="relative w-[95%] max-w-[900px] aspect-[16/10] rounded-3xl overflow-hidden border-[18px] border-[#1e1e2d]" style={{ background: '#000' }}>
-          {/* Home indicator */}
+        <div className="relative w-[95%] max-w-[900px] aspect-[16/10] rounded-3xl overflow-hidden border-[18px] border-[#1e1e2d] bg-black">
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-[#1e1e2d] rounded-full z-50" />
-          {/* Camera dot */}
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-50">
             <div className="w-4 h-4 rounded-full bg-[#0d0d16] border border-[rgba(255,255,255,0.08)]">
               <div className="w-1.5 h-1.5 rounded-full bg-[#1a4f7c] absolute inset-1/2 -translate-x-1/2 -translate-y-1/2" />
             </div>
           </div>
-          {/* Content */}
-          <div className="w-full h-full relative overflow-hidden">
-            {children}
-          </div>
-          {/* Powered off overlay */}
-          {!isMonitorOn && (
-            <div className="absolute inset-0 bg-[#020205] z-[9999] flex flex-col items-center justify-center text-neutral-600 animate-fade-in font-mono text-[11px] tracking-wider">
-              <Power size={24} className="text-neutral-500 mb-2" />
-              <span>TABLET OFF</span>
-            </div>
-          )}
+          <div className="w-full h-full relative overflow-hidden">{children}</div>
+          {!isOn && <PoweredOff label="TABLET OFF" size={24} className="text-[11px]" />}
         </div>
       </div>
     );
   }
 
-  // Render Desktop Monitor Frame (default)
   return (
-    <div className="h-screen w-screen flex flex-col items-center justify-end pb-2 select-none overflow-hidden px-10" style={{ background: 'linear-gradient(160deg, #f0ece8 0%, #e8e4e0 40%, #ece8e4 100%)' }}>
-      {/* === MONITOR SCREEN === */}
+    <div
+      className="h-screen w-screen flex flex-col items-center justify-end pb-2 select-none overflow-hidden px-10"
+      style={{ background: 'linear-gradient(160deg, #f0ece8 0%, #e8e4e0 40%, #ece8e4 100%)' }}
+    >
       <div
-        className="relative w-[98%] max-w-[1720px] flex-1 mt-2 rounded-t-xl overflow-hidden"
+        className={`relative w-[98%] max-w-[1720px] flex-1 mt-2 rounded-t-xl overflow-hidden ${glitch ? 'animate-glitch' : ''}`}
         style={{
           border: '10px solid #1e1e2d',
           borderBottom: '8px solid #1e1e2d',
           background: '#000000',
-          boxShadow:
-            '0 0 100px rgba(0,0,0,0.85), inset 0 0 2px rgba(255,255,255,0.05)',
+          boxShadow: '0 0 100px rgba(0,0,0,0.85), inset 0 0 2px rgba(255,255,255,0.05)',
         }}
       >
-        {/* Subtle bezel inner edge highlight */}
         <div className="absolute inset-0 rounded-[4px] border border-[rgba(255,255,255,0.04)] pointer-events-none z-[60]" />
-
-        {/* Webcam / sensor dot */}
         <div className="absolute top-[4px] left-1/2 -translate-x-1/2 z-[60]">
           <div className="w-[6px] h-[6px] rounded-full bg-[#0d0d16] border border-[rgba(255,255,255,0.08)] flex items-center justify-center">
             <div className="w-[2px] h-[2px] rounded-full bg-[#1a4f7c]" />
           </div>
         </div>
 
-        {/* Powered off overlay */}
-        {!isMonitorOn && (
-          <div className="absolute inset-0 bg-[#020205] z-[9999] flex flex-col items-center justify-center text-neutral-600 animate-fade-in font-mono text-[11px] tracking-wider select-none">
+        {!isOn && (
+          <div className="absolute inset-0 bg-[#020205] z-[9999] flex flex-col items-center justify-center text-neutral-600 animate-fade-in font-mono text-[11px] tracking-wider">
             <div className="w-16 h-16 rounded-full border border-neutral-800 flex items-center justify-center mb-3 bg-neutral-900/50">
               <Power size={20} className="text-neutral-500 animate-pulse" />
             </div>
-            <span>MONITOR POWER SAVING MODE</span>
-            <span className="text-[9px] text-neutral-700 mt-1">PRESS POWER BUTTON TO ACTIVATE</span>
+            <span>NO SIGNAL</span>
           </div>
         )}
 
-        {/* Screen content area — fills the entire bezel interior */}
-        <div className="w-full h-full relative overflow-hidden">
-          {children}
-        </div>
+        <div className="w-full h-full relative overflow-hidden">{children}</div>
       </div>
 
-      {/* === MONITOR CHIN (bottom bezel) === */}
       <div
         className="w-[98%] max-w-[1720px] flex items-center justify-between px-6 relative"
         style={{
@@ -173,36 +128,22 @@ export const MonitorFrame: React.FC<MonitorFrameProps> = ({ children, onPowerCli
           boxShadow: '0 6px 30px rgba(0,0,0,0.5)',
         }}
       >
-        {/* Left side spacer to keep centering */}
         <div className="w-24" />
 
-        {/* Brand logo (centered) */}
-        <span className="text-[9px] font-mono tracking-[0.4em] text-gray-500 uppercase select-none font-bold">
+        <button
+          onClick={handleBrandClick}
+          className={`text-[9px] font-mono tracking-[0.4em] uppercase font-bold transition-colors ${glitch ? 'text-win11-blue' : 'text-gray-500 hover:text-gray-400'}`}
+        >
           xArE0
-        </span>
+        </button>
 
-        {/* Right side power control group */}
         <div className="w-24 flex items-center justify-end gap-3">
-          {/* LED Indicator */}
-          <div 
+          <div
             className={`w-2 h-2 rounded-full transition-all duration-500 ${
-              isMonitorOn 
-                ? 'bg-[#00d2ff] shadow-[0_0_8px_#00d2ff,0_0_15px_#00d2ff]' 
-                : 'bg-[#ff9900] shadow-[0_0_8px_#ff9900,0_0_12px_#ff9900]'
+              isOn ? 'bg-[#00d2ff] shadow-[0_0_8px_#00d2ff,0_0_15px_#00d2ff]' : 'bg-[#ff9900] shadow-[0_0_8px_#ff9900,0_0_12px_#ff9900]'
             }`}
-            title={isMonitorOn ? "Monitor: Active" : "Monitor: Standby"}
           />
-
-          {/* Physical Power Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsMonitorOn(!isMonitorOn);
-              if (onPowerClick) onPowerClick();
-            }}
-            className="group focus:outline-none"
-            title="Monitor Power Button"
-          >
+          <button onClick={e => { e.stopPropagation(); toggle(); }} className="group focus:outline-none" title="Power">
             <div
               className="w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 border border-[rgba(255,255,255,0.08)] hover:border-red-500/50 hover:shadow-[0_0_12px_rgba(239,68,68,0.3)] active:scale-90 cursor-pointer"
               style={{
@@ -216,7 +157,6 @@ export const MonitorFrame: React.FC<MonitorFrameProps> = ({ children, onPowerCli
         </div>
       </div>
 
-      {/* === STAND NECK === */}
       <div
         className="w-24 h-10"
         style={{
@@ -226,8 +166,6 @@ export const MonitorFrame: React.FC<MonitorFrameProps> = ({ children, onPowerCli
           boxShadow: 'inset 0 0 10px rgba(0,0,0,0.5)',
         }}
       />
-
-      {/* === STAND BASE === */}
       <div
         className="w-60 h-[8px] rounded-b-lg"
         style={{

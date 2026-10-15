@@ -35,7 +35,6 @@ export const WidgetsPanel: React.FC<WidgetsPanelProps> = ({ isOpen, isClosing, d
   const [weatherIdx] = useState(() => Math.floor(Math.random() * weatherStates.length));
   const [animateIntro, setAnimateIntro] = useState(true);
 
-  // Trigger animation lock when widgets panel is opened
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => {
@@ -48,7 +47,6 @@ export const WidgetsPanel: React.FC<WidgetsPanelProps> = ({ isOpen, isClosing, d
     }
   }, [isOpen]);
 
-  // Rotate quotes
   useEffect(() => {
     const timer = setInterval(() => {
       setQuoteIdx(prev => (prev + 1) % devQuotes.length);
@@ -70,18 +68,13 @@ export const WidgetsPanel: React.FC<WidgetsPanelProps> = ({ isOpen, isClosing, d
   return (
     <div
       style={{ zIndex: 997 }}
+      onClick={e => e.stopPropagation()}
       className={`absolute left-0 top-0 bottom-12 w-[340px] sm:w-[380px] overflow-y-auto p-4 glass-panel ${darkMode ? 'glass-panel-dark' : 'glass-panel-light'
         } ${isClosing ? 'animate-widgets-out' : 'animate-widgets-in'}`}
     >
-      {/* Header */}
       <div className="mb-4 px-1">
         <h2 className="text-base font-semibold">Widgets</h2>
-        <p className={`text-[10px] mt-0.5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-          Your personalized dashboard
-        </p>
       </div>
-
-      {/* Weather Card */}
       <div
         className={`${cardClass} mb-3 ${animateIntro ? 'animate-widget-card' : ''}`}
         style={{ animationDelay: '0.05s' }}
@@ -108,8 +101,6 @@ export const WidgetsPanel: React.FC<WidgetsPanelProps> = ({ isOpen, isClosing, d
           </div>
         </div>
       </div>
-
-      {/* Quick Stats Card */}
       <div
         className={`${cardClass} mb-3 ${animateIntro ? 'animate-widget-card' : ''}`}
         style={{ animationDelay: '0.1s' }}
@@ -142,8 +133,6 @@ export const WidgetsPanel: React.FC<WidgetsPanelProps> = ({ isOpen, isClosing, d
           ))}
         </div>
       </div>
-
-      {/* GitHub Activity Card */}
       <div
         className={`${cardClass} mb-3 ${animateIntro ? 'animate-widget-card' : ''}`}
         style={{ animationDelay: '0.15s' }}
@@ -182,8 +171,6 @@ export const WidgetsPanel: React.FC<WidgetsPanelProps> = ({ isOpen, isClosing, d
           ))}
         </div>
       </div>
-
-      {/* Inspirational Quote Card */}
       <div
         className={`${cardClass} mb-3 ${animateIntro ? 'animate-widget-card' : ''}`}
         style={{ animationDelay: '0.2s' }}

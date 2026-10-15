@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { unlockSecret } from '../../lib/secrets';
 
 interface NotepadAppProps {
   darkMode: boolean;
@@ -34,9 +35,17 @@ I spend my free time exploring new things or building fun projects like this Win
 
   const [cursorPos, setCursorPos] = useState({ ln: 1, col: 1 });
 
+  const [status, setStatus] = useState('Ready');
+
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
     updateCursorPos(e.target);
+    if (/xyzzy/i.test(e.target.value)) {
+      setStatus('Nothing happens.');
+      unlockSecret('xyzzy');
+    } else if (status !== 'Ready') {
+      setStatus('Ready');
+    }
   };
 
   const handleSelect = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
@@ -57,7 +66,6 @@ I spend my free time exploring new things or building fun projects like this Win
   return (
     <div className={`flex flex-col h-full w-full font-mono text-xs select-text ${darkMode ? 'bg-[#1e1e1e] text-[#cccccc]' : 'bg-white text-[#1e1e1e]'
       }`}>
-      {/* Menu Bar */}
       <div className={`flex items-center gap-4 px-3 py-1.5 border-b select-none ${darkMode ? 'bg-[#252526] border-[#2d2d2d] text-gray-400' : 'bg-[#f3f3f3] border-gray-200 text-gray-600'
         }`}>
         {menuItems.map((item, idx) => (
@@ -70,8 +78,6 @@ I spend my free time exploring new things or building fun projects like this Win
           </span>
         ))}
       </div>
-
-      {/* Main Textarea */}
       <div className="flex-1 p-2 relative overflow-hidden flex">
         <textarea
           value={text}
@@ -84,13 +90,11 @@ I spend my free time exploring new things or building fun projects like this Win
           spellCheck="false"
         />
       </div>
-
-      {/* Status Bar */}
       <div className={`flex items-center justify-between px-3 py-1 border-t text-[10px] select-none ${darkMode ? 'bg-[#252526] border-[#2d2d2d] text-gray-400' : 'bg-[#f3f3f3] border-gray-200 text-gray-600'
         }`}>
         <div>
           <span>Status: </span>
-          <span className="text-emerald-500 font-semibold">Ready</span>
+          <span className="text-emerald-500 font-semibold">{status}</span>
         </div>
 
         <div className="flex items-center gap-6">
