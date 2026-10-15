@@ -5,6 +5,7 @@ import { loadProjects } from '../../contentLoader';
 import { WALLPAPERS } from '../../lib/wallpapers';
 import { SECRETS, unlockSecret, useFoundSecrets } from '../../lib/secrets';
 import { CONTACT } from '../../lib/contact';
+import { GAME_LIST, launchGame } from '../../lib/arcade';
 
 interface TerminalAppProps {
   onClose: () => void;
@@ -47,6 +48,7 @@ const HELP: [string, string][] = [
   ['neofetch', 'System information'],
   ['ls / cat <file>', 'Browse files'],
   ['open <app>', 'Launch an app'],
+  ['games / play <game>', 'Arcade'],
   ['theme <name>', 'Change wallpaper (themes to list)'],
   ['accent <1-7|#hex>', 'Change accent color'],
   ['mode <dark|light>', 'Switch color mode'],
@@ -61,7 +63,7 @@ const HELP: [string, string][] = [
 const COMMANDS = [
   'about', 'skills', 'projects', 'neofetch', 'ls', 'dir', 'cat', 'type', 'open', 'apps', 'theme', 'themes', 'accent', 'mode',
   'sound', 'contact', 'github', 'linkedin', 'email', 'fortune', 'joke', 'secrets', 'hint', 'history', 'clear', 'cls',
-  'restart', 'shutdown', 'exit', 'help', 'whoami', 'date', 'echo', 'cowsay', 'ping',
+  'restart', 'shutdown', 'exit', 'help', 'whoami', 'date', 'echo', 'cowsay', 'ping', 'games', 'play',
 ];
 
 const cowsay = (text: string) => {
@@ -331,9 +333,20 @@ export const TerminalApp: React.FC<TerminalAppProps> = ({ onClose }) => {
         if (cmd === 'do' && argLower !== 'a barrel roll') break;
         return triggerEffect('barrel-roll');
 
+      case 'games':
+        return print(GAME_LIST.map(g => g.id).join('    '));
+
+      case 'play':
       case 'snake':
-        openApp('snake');
-        return print('Loading snake.exe...');
+      case 'minesweeper':
+      case '2048': {
+        const query = cmd === 'play' ? argLower : cmd;
+        const game = GAME_LIST.find(g => g.id === query || g.name.toLowerCase() === query);
+        if (!game) return print(`play: unknown game "${arg}". Try "games".`, 'error');
+        launchGame(game.id);
+        openApp('arcade');
+        return print(`Loading ${game.name}...`);
+      }
 
       case 'hello':
       case 'hi':
@@ -415,6 +428,8 @@ You meant "ls". Choo choo.`}</pre>,
         ? COMMANDS.filter(c => c.startsWith(cmd.toLowerCase()))
         : cmd === 'open'
           ? APPS.filter(a => !a.hidden).map(a => a.id).filter(id => id.startsWith(rest.join(' ')))
+          : cmd === 'play'
+            ? GAME_LIST.map(g => g.id).filter(id => id.startsWith(rest.join(' ')))
           : cmd === 'cat' || cmd === 'type'
             ? Object.keys(FILES).filter(f => f.startsWith(rest.join(' ')))
             : [];

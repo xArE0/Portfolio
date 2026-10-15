@@ -8,7 +8,7 @@ import { AchievementsApp } from './apps/AchievementsApp';
 import { MusicPlayerApp } from './apps/MusicPlayerApp';
 import { GetInTouchApp } from './apps/GetInTouchApp';
 import { RecycleBinApp } from './apps/RecycleBinApp';
-import { SnakeApp } from './apps/SnakeApp';
+import { ArcadeApp } from './apps/ArcadeApp';
 
 interface AppContentProps {
   id: string;
@@ -27,7 +27,7 @@ export const AppContent: React.FC<AppContentProps> = ({ id, achievementFocus }) 
     case 'music': return <MusicPlayerApp darkMode={darkMode} />;
     case 'getintouch': return <GetInTouchApp darkMode={darkMode} />;
     case 'recycle': return <RecycleBinApp darkMode={darkMode} />;
-    case 'snake': return <SnakeApp darkMode={darkMode} />;
+    case 'arcade': return <ArcadeApp darkMode={darkMode} />;
     default: return null;
   }
 };

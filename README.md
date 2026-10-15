@@ -22,4 +22,4 @@ src/content/achievements/<slug>/meta.json   + media files
 
 Add a folder with a `meta.json` and rebuild — no code changes needed.
 
-Deep links: `#about`, `#projects`, `#terminal`, `#settings`, `#achievements`, `#music`, `#contact`, `#certificate/<slug>`.
+Deep links: `#about`, `#projects`, `#terminal`, `#settings`, `#achievements`, `#music`, `#contact`, `#arcade`, `#certificate/<slug>`.

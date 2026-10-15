@@ -18,7 +18,12 @@ export const SECRETS: Secret[] = [
   { id: 'binary-clock', title: '10 Kinds Of People', hint: 'Time is just ones and zeros. Click it.' },
   { id: 'recycle', title: 'Dumpster Diver', hint: 'Not everything deleted is gone.' },
   { id: 'xyzzy', title: 'Colossal Cave', hint: 'A magic word, written somewhere you take notes.' },
-  { id: 'snake', title: 'Snake Charmer', hint: 'Score 10 in a hidden game.' },
+  { id: 'snake', title: 'Snake Charmer', hint: 'Score 10 in Snake.' },
+  { id: 'minesweeper', title: 'Bomb Squad', hint: 'Clear a minefield without a scratch.' },
+  { id: '2048', title: 'Tile Tycoon', hint: 'Merge your way to 512.' },
+  { id: 'memory', title: 'Photographic Memory', hint: 'Match every pair in 12 moves or less.' },
+  { id: 'typer', title: 'Keyboard Warrior', hint: 'Type code at 40 WPM or faster.' },
+  { id: 'whack', title: 'Exterminator', hint: 'Squash 25 bugs before time runs out.' },
   { id: 'devtools', title: 'Inspector Gadget', hint: 'Developers always open the console.' },
   { id: 'night-owl', title: 'Night Owl', hint: 'Visit when sensible people are asleep.' },
 ];

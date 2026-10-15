@@ -1,4 +1,4 @@
-import { FileText, Folder, Terminal, Settings, Share2, Trophy, Music, Trash2, Gamepad2, type LucideIcon } from 'lucide-react';
+import { FileText, Folder, Terminal, Settings, Share2, Trophy, Music, Trash2, Joystick, type LucideIcon } from 'lucide-react';
 
 export interface AppDef {
   id: string;
@@ -22,8 +22,8 @@ export const APPS: AppDef[] = [
   { id: 'terminal', title: 'PowerShell Terminal', label: 'Terminal', shortLabel: 'Terminal', Icon: Terminal, color: 'text-emerald-500', tile: 'from-emerald-600 to-emerald-400', hash: '#terminal', width: 800, height: 500 },
   { id: 'settings', title: 'Settings', label: 'Settings', shortLabel: 'Settings', Icon: Settings, color: 'text-blue-500', tile: 'from-blue-600 to-blue-400', hash: '#settings', width: 860, height: 550 },
   { id: 'getintouch', title: 'Get In Touch', label: 'Get in Touch', shortLabel: 'Connect', Icon: Share2, color: 'text-cyan-500', tile: 'from-cyan-600 to-cyan-400', hash: '#contact', width: 680, height: 500 },
+  { id: 'arcade', title: 'Arcade', label: 'Arcade', shortLabel: 'Arcade', Icon: Joystick, color: 'text-pink-400', tile: 'from-pink-600 to-fuchsia-400', hash: '#arcade', width: 720, height: 640 },
   { id: 'recycle', title: 'Recycle Bin', label: 'Recycle Bin', shortLabel: 'Bin', Icon: Trash2, color: 'text-slate-300', tile: 'from-slate-600 to-slate-400', width: 640, height: 460 },
-  { id: 'snake', title: 'snake.exe', label: 'Snake', shortLabel: 'Snake', Icon: Gamepad2, color: 'text-lime-400', tile: 'from-lime-600 to-lime-400', hash: '#snake', width: 520, height: 600, hidden: true },
 ];
 
 export const getApp = (id: string) => APPS.find(a => a.id === id);

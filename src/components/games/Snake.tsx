@@ -5,7 +5,7 @@ import { unlockSecret } from '../../lib/secrets';
 import { playSound } from '../../lib/sound';
 import { useSystem } from '../../system';
 
-interface SnakeAppProps {
+interface SnakeProps {
   darkMode: boolean;
 }
 
@@ -32,7 +32,7 @@ const randomFood = (snake: Point[]): Point => {
   }
 };
 
-export const SnakeApp: React.FC<SnakeAppProps> = ({ darkMode }) => {
+export const Snake: React.FC<SnakeProps> = ({ darkMode }) => {
   const { soundEnabled } = useSystem();
   const [snake, setSnake] = useState(startSnake);
   const [food, setFood] = useState<Point>({ x: 15, y: 10 });
@@ -122,7 +122,8 @@ export const SnakeApp: React.FC<SnakeAppProps> = ({ darkMode }) => {
         <span>BEST {String(best).padStart(3, '0')}</span>
       </div>
 
-      <div className={`relative w-full max-w-[400px] aspect-square rounded border-2 ${darkMode ? 'border-lime-500/40 bg-black/40' : 'border-lime-700/40 bg-white/60'}`}>
+      <div className="flex-1 min-h-0 w-full flex justify-center" style={{ containerType: 'size' }}>
+      <div style={{ width: 'min(100cqw, 100cqh, 420px)' }} className={`relative aspect-square rounded border-2 ${darkMode ? 'border-lime-500/40 bg-black/40' : 'border-lime-700/40 bg-white/60'}`}>
         <div
           className="absolute rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"
           style={{ left: `${food.x * cell}%`, top: `${food.y * cell}%`, width: `${cell}%`, height: `${cell}%` }}
@@ -144,6 +145,7 @@ export const SnakeApp: React.FC<SnakeAppProps> = ({ darkMode }) => {
             </button>
           </div>
         )}
+      </div>
       </div>
 
       <div className="grid grid-cols-3 gap-1.5 sm:hidden">
