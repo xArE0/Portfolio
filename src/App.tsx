@@ -650,7 +650,7 @@ export default function App() {
         <div
           style={{ 
             background: isProfileWallpaper ? 'none' : wallpaperStyles[wallpaper],
-            backgroundImage: isProfileWallpaper ? 'url(/assets/profile.png)' : undefined,
+            backgroundImage: isProfileWallpaper ? 'url(/assets/profile.jpg)' : undefined,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}

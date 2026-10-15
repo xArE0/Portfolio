@@ -43,7 +43,7 @@ export const SettingsApp: React.FC<SettingsAppProps> = ({
   }
 
   const wallpapers: WallpaperItem[] = [
-    { id: 'profile', name: 'Profile Photo', style: 'none', image: '/assets/profile.png' },
+    { id: 'profile', name: 'Profile Photo', style: 'none', image: '/assets/profile.jpg' },
     { id: 'bloom-dark', name: 'Bloom Dark', style: 'linear-gradient(135deg, #0f0c20 0%, #15103a 25%, #052c59 60%, #0c0714 100%)' },
     { id: 'bloom-light', name: 'Bloom Light', style: 'linear-gradient(135deg, #e4eefb 0%, #d8e5f7 30%, #f7dced 70%, #e8f0fe 100%)' },
     { id: 'fluid-aurora', name: 'Fluid Aurora', style: 'radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%)' },

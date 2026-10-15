@@ -209,7 +209,7 @@ export const AndroidSystem: React.FC<AndroidSystemProps> = ({
     <div
       style={{
         background: isProfileWallpaper ? 'none' : wallpaperStyles[wallpaper],
-        backgroundImage: isProfileWallpaper ? 'url(/assets/profile.png)' : undefined,
+        backgroundImage: isProfileWallpaper ? 'url(/assets/profile.jpg)' : undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}

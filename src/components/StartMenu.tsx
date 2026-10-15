@@ -214,7 +214,7 @@ export const StartMenu: React.FC<StartMenuProps> = ({
           {/* Profile Avatar with actual photo */}
           <div className="w-8 h-8 rounded-full bg-win11-blue flex items-center justify-center font-bold text-white text-xs border border-white/20 overflow-hidden">
             <img
-              src="/assets/profile.png"
+              src="/assets/profile.jpg"
               alt="Avishek"
               className="w-full h-full object-cover"
               onError={(e) => {
