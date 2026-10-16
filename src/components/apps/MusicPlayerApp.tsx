@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Music } from 'lucide-react';
+import { getAudioContext } from '../../lib/sound';
 
 interface MusicPlayerAppProps {
   darkMode: boolean;
@@ -27,7 +28,6 @@ export const MusicPlayerApp: React.FC<MusicPlayerAppProps> = ({ darkMode }) => {
   const [volume, setVolume] = useState(0.3);
   const [isMuted, setIsMuted] = useState(false);
 
-  const audioCtxRef = useRef<AudioContext | null>(null);
   const oscillatorsRef = useRef<OscillatorNode[]>([]);
   const gainNodesRef = useRef<GainNode[]>([]);
   const masterGainRef = useRef<GainNode | null>(null);
@@ -42,23 +42,16 @@ export const MusicPlayerApp: React.FC<MusicPlayerAppProps> = ({ darkMode }) => {
     if (lfoRef.current) {
       try { lfoRef.current.stop(); } catch { /* already stopped */ }
     }
+    masterGainRef.current?.disconnect();
     oscillatorsRef.current = [];
     gainNodesRef.current = [];
     lfoRef.current = null;
+    masterGainRef.current = null;
   }, []);
 
-  const startAudio = useCallback(() => {
-    const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext;
-    if (!AudioContext) return;
-
-    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-      audioCtxRef.current = new AudioContext();
-    }
-
-    const ctx = audioCtxRef.current;
-    if (ctx.state === 'suspended') {
-      ctx.resume();
-    }
+  const startAudio = useCallback((track: Track) => {
+    const ctx = getAudioContext();
+    if (!ctx) return;
 
     stopAudio();
 
@@ -67,10 +60,9 @@ export const MusicPlayerApp: React.FC<MusicPlayerAppProps> = ({ darkMode }) => {
     masterGain.connect(ctx.destination);
     masterGainRef.current = masterGain;
 
-    const baseFreq = currentTrack.baseFreq;
+    const baseFreq = track.baseFreq;
 
-    // Create a pad-like ambient sound with multiple detuned oscillators
-    const chordNotes = [1, 1.25, 1.5, 2]; // root, major 3rd, 5th, octave
+    const chordNotes = [1, 1.25, 1.5, 2];
     const oscillators: OscillatorNode[] = [];
     const gains: GainNode[] = [];
 
@@ -92,7 +84,6 @@ export const MusicPlayerApp: React.FC<MusicPlayerAppProps> = ({ darkMode }) => {
       gains.push(gain);
     });
 
-    // LFO for subtle tremolo effect
     const lfo = ctx.createOscillator();
     const lfoGain = ctx.createGain();
     lfo.type = 'sine';
@@ -107,71 +98,39 @@ export const MusicPlayerApp: React.FC<MusicPlayerAppProps> = ({ darkMode }) => {
     oscillatorsRef.current = oscillators;
     gainNodesRef.current = gains;
     lfoRef.current = lfo;
-  }, [currentTrack, volume, isMuted, stopAudio]);
+  }, [volume, isMuted, stopAudio]);
 
-  // Update volume in real time
   useEffect(() => {
-    if (masterGainRef.current && audioCtxRef.current) {
-      masterGainRef.current.gain.setValueAtTime(
-        isMuted ? 0 : volume,
-        audioCtxRef.current.currentTime
-      );
-    }
+    const gain = masterGainRef.current;
+    if (gain) gain.gain.setValueAtTime(isMuted ? 0 : volume, gain.context.currentTime);
   }, [volume, isMuted]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      stopAudio();
-      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
-        audioCtxRef.current.close();
-      }
-    };
-  }, [stopAudio]);
+  useEffect(() => stopAudio, [stopAudio]);
 
   const togglePlay = () => {
     if (isPlaying) {
       stopAudio();
       setIsPlaying(false);
     } else {
-      startAudio();
+      startAudio(currentTrack);
       setIsPlaying(true);
     }
   };
 
-  const skipTrack = (direction: 'next' | 'prev') => {
-    const wasPlaying = isPlaying;
-    if (wasPlaying) {
-      stopAudio();
-    }
-    const nextIdx = direction === 'next'
-      ? (currentTrackIdx + 1) % playlist.length
-      : (currentTrackIdx - 1 + playlist.length) % playlist.length;
-    setCurrentTrackIdx(nextIdx);
-    if (wasPlaying) {
-      // Small delay to let state update
-      setTimeout(() => {
-        setIsPlaying(true);
-      }, 50);
-    }
+  const selectTrack = (idx: number) => {
+    setCurrentTrackIdx(idx);
+    if (isPlaying) startAudio(playlist[idx]);
   };
 
-  // Restart audio when track changes and we're playing
-  useEffect(() => {
-    if (isPlaying) {
-      startAudio();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentTrackIdx]);
+  const skipTrack = (direction: 'next' | 'prev') =>
+    selectTrack((currentTrackIdx + (direction === 'next' ? 1 : playlist.length - 1)) % playlist.length);
 
-  // Generate visualizer bars data
   const barCount = 24;
 
   return (
     <div className={`flex flex-col h-full w-full select-none ${
       darkMode ? 'bg-[#121212] text-white' : 'bg-[#f9f9f9] text-gray-800'
     }`}>
-      {/* Album Art / Visualizer Area */}
       <div
         className="flex-1 flex flex-col items-center justify-center relative overflow-hidden"
         style={{
@@ -180,7 +139,6 @@ export const MusicPlayerApp: React.FC<MusicPlayerAppProps> = ({ darkMode }) => {
             : `radial-gradient(ellipse at center, ${currentTrack.color}10 0%, transparent 70%)`
         }}
       >
-        {/* Visualizer Bars */}
         <div className="flex items-end gap-[2px] h-20 mb-6">
           {Array.from({ length: barCount }).map((_, i) => (
             <div
@@ -196,8 +154,6 @@ export const MusicPlayerApp: React.FC<MusicPlayerAppProps> = ({ darkMode }) => {
             />
           ))}
         </div>
-
-        {/* Track Icon */}
         <div
           className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-5 shadow-lg transition-all duration-300 ${
             isPlaying ? 'music-pulse' : ''
@@ -209,8 +165,6 @@ export const MusicPlayerApp: React.FC<MusicPlayerAppProps> = ({ darkMode }) => {
         >
           <Music size={32} style={{ color: currentTrack.color }} />
         </div>
-
-        {/* Track Info */}
         <div className="text-center animate-fade-in" key={currentTrackIdx}>
           <h3 className="font-semibold text-sm mb-1 font-mono">{currentTrack.name}</h3>
           <p className={`text-[11px] ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -218,12 +172,9 @@ export const MusicPlayerApp: React.FC<MusicPlayerAppProps> = ({ darkMode }) => {
           </p>
         </div>
       </div>
-
-      {/* Controls */}
       <div className={`px-5 py-4 border-t ${
         darkMode ? 'bg-[#181818] border-neutral-800' : 'bg-white border-gray-200'
       }`}>
-        {/* Progress bar (decorative for ambient tracks) */}
         <div className={`w-full h-1 rounded-full mb-4 overflow-hidden ${
           darkMode ? 'bg-neutral-800' : 'bg-gray-200'
         }`}>
@@ -236,10 +187,7 @@ export const MusicPlayerApp: React.FC<MusicPlayerAppProps> = ({ darkMode }) => {
             }}
           />
         </div>
-
-        {/* Playback Controls */}
         <div className="flex items-center justify-between">
-          {/* Volume Control */}
           <div className="flex items-center gap-2 w-28">
             <button
               onClick={() => setIsMuted(!isMuted)}
@@ -265,8 +213,6 @@ export const MusicPlayerApp: React.FC<MusicPlayerAppProps> = ({ darkMode }) => {
               }}
             />
           </div>
-
-          {/* Main Controls */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => skipTrack('prev')}
@@ -294,16 +240,12 @@ export const MusicPlayerApp: React.FC<MusicPlayerAppProps> = ({ darkMode }) => {
               <SkipForward size={16} />
             </button>
           </div>
-
-          {/* Duration */}
           <div className="w-28 text-right">
             <span className={`text-[10px] font-mono ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
               {currentTrack.duration} • Ambient
             </span>
           </div>
         </div>
-
-        {/* Playlist */}
         <div className={`mt-3 pt-3 border-t ${darkMode ? 'border-neutral-800' : 'border-gray-200'}`}>
           <span className={`text-[9px] uppercase font-bold tracking-wider ${
             darkMode ? 'text-gray-500' : 'text-gray-400'
@@ -314,12 +256,7 @@ export const MusicPlayerApp: React.FC<MusicPlayerAppProps> = ({ darkMode }) => {
             {playlist.map((track, idx) => (
               <button
                 key={idx}
-                onClick={() => {
-                  const wasPlaying = isPlaying;
-                  if (wasPlaying) stopAudio();
-                  setCurrentTrackIdx(idx);
-                  if (wasPlaying) setTimeout(() => setIsPlaying(true), 50);
-                }}
+                onClick={() => selectTrack(idx)}
                 className={`flex items-center gap-2.5 px-2 py-1.5 rounded text-left transition-all duration-150 ${
                   idx === currentTrackIdx
                     ? 'bg-win11-blue/15 text-win11-blue'

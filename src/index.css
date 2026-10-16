@@ -20,7 +20,6 @@
   }
 }
 
-/* Glassmorphism custom styles */
 .glass-panel {
   backdrop-filter: blur(30px) saturate(125%);
   -webkit-backdrop-filter: blur(30px) saturate(125%);
@@ -38,17 +37,6 @@
   color: #e3e3e3;
 }
 
-.glass-card-light {
-  background-color: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.glass-card-dark {
-  background-color: rgba(45, 45, 45, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* Scrollbars for apps */
 ::-webkit-scrollbar {
   width: 12px;
   height: 12px;
@@ -71,10 +59,6 @@
   background-clip: padding-box;
 }
 
-/* ============================================
-   BOOT SCREEN ANIMATIONS
-   ============================================ */
-
 @keyframes bootLogoEntrance {
   0% {
     opacity: 0;
@@ -95,15 +79,6 @@
 
 .animate-boot-logo {
   animation: bootLogoEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes bootSpinner {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.animate-boot-spinner {
-  animation: bootSpinner 1.2s linear infinite;
 }
 
 @keyframes bootDotPulse {
@@ -135,10 +110,6 @@
   animation: bootFadeOut 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-/* ============================================
-   DESKTOP FADE-IN AFTER BOOT
-   ============================================ */
-
 @keyframes desktopFadeIn {
   0% {
     opacity: 0;
@@ -154,11 +125,6 @@
   animation: desktopFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ============================================
-   WINDOW ANIMATIONS
-   ============================================ */
-
-/* Window Open */
 @keyframes windowOpen {
   from {
     transform: scale(0.92) translateY(16px);
@@ -174,7 +140,6 @@
   animation: windowOpen 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Window Close */
 @keyframes windowClose {
   0% {
     transform: scale(1);
@@ -190,7 +155,6 @@
   animation: windowClose 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
-/* Window Minimize (shrink down toward taskbar) */
 @keyframes windowMinimize {
   0% {
     transform: scale(1) translateY(0);
@@ -206,7 +170,6 @@
   animation: windowMinimize 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
-/* Window Restore (from taskbar back up) */
 @keyframes windowRestore {
   0% {
     transform: scale(0.5) translateY(60vh);
@@ -222,27 +185,13 @@
   animation: windowRestore 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Window Maximize transition */
-@keyframes windowMaximize {
-  from {
-    border-radius: 8px;
-  }
-  to {
-    border-radius: 0;
-  }
-}
-
-/* ============================================
-   START MENU ANIMATIONS
-   ============================================ */
-
 @keyframes startMenuOpen {
   from {
-    transform: translate(-50%, 30px) scale(0.96);
+    transform: translateY(30px) scale(0.96);
     opacity: 0;
   }
   to {
-    transform: translate(-50%, 0) scale(1);
+    transform: translateY(0) scale(1);
     opacity: 1;
   }
 }
@@ -253,11 +202,11 @@
 
 @keyframes startMenuClose {
   from {
-    transform: translate(-50%, 0) scale(1);
+    transform: translateY(0) scale(1);
     opacity: 1;
   }
   to {
-    transform: translate(-50%, 30px) scale(0.96);
+    transform: translateY(30px) scale(0.96);
     opacity: 0;
   }
 }
@@ -266,7 +215,6 @@
   animation: startMenuClose 0.18s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
-/* Staggered icon entrance for pinned apps */
 @keyframes pinIconEntrance {
   from {
     opacity: 0;
@@ -280,25 +228,6 @@
 
 .animate-pin-icon {
   animation: pinIconEntrance 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* ============================================
-   LIGHTBOX / GALLERY ANIMATIONS
-   ============================================ */
-
-@keyframes lightboxOpen {
-  0% {
-    opacity: 0;
-    backdrop-filter: blur(0);
-  }
-  100% {
-    opacity: 1;
-    backdrop-filter: blur(12px);
-  }
-}
-
-.animate-lightbox-open {
-  animation: lightboxOpen 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes lightboxImageZoom {
@@ -315,10 +244,6 @@
 .animate-lightbox-image {
   animation: lightboxImageZoom 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-
-/* ============================================
-   WIDGETS PANEL ANIMATIONS
-   ============================================ */
 
 @keyframes widgetSlideIn {
   from {
@@ -350,7 +275,6 @@
   animation: widgetSlideOut 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
-/* Widget card staggered entrance */
 @keyframes widgetCardEntrance {
   from {
     opacity: 0;
@@ -365,10 +289,6 @@
 .animate-widget-card {
   animation: widgetCardEntrance 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-
-/* ============================================
-   MUSIC PLAYER ANIMATIONS
-   ============================================ */
 
 @keyframes musicBar {
   0%, 100% { height: 4px; }
@@ -389,10 +309,6 @@
   animation: musicPulse 2s ease-in-out infinite;
 }
 
-/* ============================================
-   DESKTOP ICON HOVER EFFECTS
-   ============================================ */
-
 @keyframes iconHoverGlow {
   0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
   100% { box-shadow: 0 0 12px 2px rgba(255, 255, 255, 0.06); }
@@ -401,10 +317,6 @@
 .desktop-icon:hover {
   animation: iconHoverGlow 0.2s ease-out forwards;
 }
-
-/* ============================================
-   GENERIC FADE / SLIDE TRANSITIONS
-   ============================================ */
 
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -430,7 +342,6 @@
   animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Content transition for switching tabs inside apps */
 @keyframes tabContentSwitch {
   from {
     opacity: 0;
@@ -445,10 +356,6 @@
 .animate-tab-content {
   animation: tabContentSwitch 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-
-/* ============================================
-   BIOS LOADING (Restart)
-   ============================================ */
 
 @keyframes loading {
   0% {
@@ -467,10 +374,6 @@
   animation: loading 1.5s infinite linear;
 }
 
-/* ============================================
-   PROFILE WALLPAPER OVERLAY
-   ============================================ */
-
 .wallpaper-profile {
   position: relative;
 }
@@ -487,4 +390,49 @@
   );
   pointer-events: none;
   z-index: 0;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-toast-in {
+  animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes barrelRoll {
+  to { transform: rotate(360deg); }
+}
+
+.animate-barrel-roll {
+  animation: barrelRoll 1.5s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@keyframes rainbow {
+  to { filter: hue-rotate(360deg) saturate(1.6); }
+}
+
+.animate-rainbow {
+  animation: rainbow 2s linear infinite;
+}
+
+@keyframes glitch {
+  0%, 100% { transform: translate(0); filter: none; }
+  20% { transform: translate(-3px, 2px); filter: hue-rotate(90deg); }
+  40% { transform: translate(3px, -2px); filter: invert(1); }
+  60% { transform: translate(-2px, -1px); filter: hue-rotate(-90deg) saturate(3); }
+  80% { transform: translate(2px, 1px); filter: none; }
+}
+
+.animate-glitch {
+  animation: glitch 0.3s steps(2) 4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-barrel-roll,
+  .animate-rainbow,
+  .animate-glitch {
+    animation: none;
+  }
 }

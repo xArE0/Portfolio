@@ -2,12 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { Trophy, X, ChevronLeft, ChevronRight, FileText, Image, Folder } from 'lucide-react';
 import { loadAchievements, type AchievementItem } from '../../contentLoader';
 
+type Filter = 'all' | 'certificate' | 'award';
+const FILTERS: Filter[] = ['all', 'certificate', 'award'];
+
 interface AchievementsAppProps {
   darkMode: boolean;
   initialFocus?: string;
 }
 
-// Sub-component for individual achievement cards
 const AchievementCard = React.memo(({
   item,
   idx,
@@ -27,20 +29,16 @@ const AchievementCard = React.memo(({
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Logic to find the best thumbnail
   const thumbnail = useMemo(() => {
-    // 1. Prefer files with 'thumb' or 'small' in name
     const explicitThumb = item.mediaFiles.find(f =>
       f.type === 'image' &&
       (f.name.toLowerCase().includes('thumb') || f.name.toLowerCase().includes('small'))
     );
     if (explicitThumb) return explicitThumb;
 
-    // 2. Secondary fallback: WhatsApp images (usually small/compressed)
     const compressedImage = item.mediaFiles.find(f => f.type === 'image' && f.name.startsWith('IMG-'));
     if (compressedImage) return compressedImage;
 
-    // 3. Final fallback: First image found
     return item.mediaFiles.find(f => f.type === 'image') || null;
   }, [item.mediaFiles]);
 
@@ -63,13 +61,11 @@ const AchievementCard = React.memo(({
         }`}
         style={{ animationDelay: `${idx * 60}ms` }}
       >
-        {/* Thumbnail Container */}
         <div className={`relative w-full h-28 overflow-hidden ${
           darkMode ? 'bg-neutral-900' : 'bg-gray-100'
         }`}>
           {thumbnail ? (
             <>
-              {/* Skeleton / Placeholder */}
               {!isLoaded && (
                 <div className={`absolute inset-0 animate-pulse ${darkMode ? 'bg-neutral-700' : 'bg-gray-200'}`} />
               )}
@@ -90,8 +86,6 @@ const AchievementCard = React.memo(({
               <span className="text-[9px] font-mono">{item.mediaFiles.length} files</span>
             </div>
           )}
-
-          {/* Hover Overlay */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
             <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 scale-90 group-hover:scale-100">
               {item.mediaFiles.length > 1 ? (
@@ -120,8 +114,6 @@ const AchievementCard = React.memo(({
           </span>
         </div>
       </button>
-
-      {/* Expanded media files */}
       {isExpanded && item.mediaFiles.length > 1 && (
         <div className={`grid grid-cols-2 gap-1.5 p-2 rounded-lg border animate-slide-up ${
           darkMode ? 'bg-neutral-800/40 border-neutral-700' : 'bg-gray-50 border-gray-200'
@@ -160,7 +152,7 @@ AchievementCard.displayName = 'AchievementCard';
 
 export const AchievementsApp: React.FC<AchievementsAppProps> = ({ darkMode, initialFocus }) => {
   const achievements = useMemo(() => loadAchievements(), []);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'certificate' | 'award'>('all');
+  const [activeFilter, setActiveFilter] = useState<Filter>('all');
   const [lightboxItem, setLightboxItem] = useState<{ achievement: AchievementItem; mediaIndex: number } | null>(
     () => {
       if (initialFocus) {
@@ -206,7 +198,6 @@ export const AchievementsApp: React.FC<AchievementsAppProps> = ({ darkMode, init
     <div className={`flex flex-col h-full w-full text-xs select-none relative ${
       darkMode ? 'bg-[#1c1c1c] text-[#e3e3e3]' : 'bg-[#f3f3f3] text-gray-800'
     }`}>
-      {/* Header */}
       <div className={`flex items-center justify-between px-5 py-3 border-b ${
         darkMode ? 'bg-[#252526] border-[#2d2d2d]' : 'bg-[#e9e9e9] border-gray-200'
       }`}>
@@ -216,10 +207,10 @@ export const AchievementsApp: React.FC<AchievementsAppProps> = ({ darkMode, init
         </div>
 
         <div className="flex items-center gap-1">
-          {['all', 'certificate', 'award'].map(key => (
+          {FILTERS.map(key => (
             <button
               key={key}
-              onClick={() => setActiveFilter(key as any)}
+              onClick={() => setActiveFilter(key)}
               className={`px-3 py-1 rounded-full text-[10px] font-medium transition-all duration-200 capitalize ${
                 activeFilter === key
                   ? 'bg-win11-blue text-white'
@@ -231,8 +222,6 @@ export const AchievementsApp: React.FC<AchievementsAppProps> = ({ darkMode, init
           ))}
         </div>
       </div>
-
-      {/* Gallery Grid */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {filtered.map((item, idx) => (
@@ -249,8 +238,6 @@ export const AchievementsApp: React.FC<AchievementsAppProps> = ({ darkMode, init
           ))}
         </div>
       </div>
-
-      {/* Lightbox */}
       {lightboxItem && (() => {
         const { achievement, mediaIndex } = lightboxItem;
         const currentFile = achievement.mediaFiles[mediaIndex];
@@ -269,7 +256,7 @@ export const AchievementsApp: React.FC<AchievementsAppProps> = ({ darkMode, init
               {currentFile.type === 'image' ? (
                 <img src={currentFile.path} alt="" className="max-w-full max-h-[75vh] object-contain rounded shadow-2xl animate-lightbox-image" />
               ) : currentFile.type === 'pdf' ? (
-                <iframe src={currentFile.path} className="w-[80vw] h-[75vh] rounded bg-white" />
+                <iframe src={currentFile.path} title={achievement.meta.title} className="w-[80vw] h-[75vh] rounded bg-white" />
               ) : null}
 
               <div className="mt-4 text-center text-white">

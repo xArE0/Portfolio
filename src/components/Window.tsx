@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Minus, Square, Copy, X } from 'lucide-react';
 
 interface WindowProps {
-  id: string;
   title: string;
   icon: React.ReactNode;
   isOpen: boolean;
@@ -10,12 +9,7 @@ interface WindowProps {
   isMaximized: boolean;
   isActive: boolean;
   zIndex: number;
-  defaultX?: number;
-  defaultY?: number;
-  defaultWidth?: number;
-  defaultHeight?: number;
-  darkMode?: boolean;
-  deviceType?: 'monitor' | 'tablet' | 'mobile';
+  darkMode: boolean;
   children: React.ReactNode;
   onClose: () => void;
   onMinimize: () => void;
@@ -25,6 +19,26 @@ interface WindowProps {
 
 type AnimState = 'idle' | 'opening' | 'closing' | 'minimizing' | 'restoring';
 
+const TASKBAR_HEIGHT = 48;
+
+const ANIM_CLASS: Record<AnimState, string> = {
+  idle: '',
+  opening: 'animate-window-open',
+  closing: 'animate-window-close',
+  minimizing: 'animate-window-minimize',
+  restoring: 'animate-window-restore',
+};
+
+const initialGeometry = () => {
+  const offset = Math.floor(Math.random() * 20) - 10;
+  const w = window.innerWidth;
+  const h = window.innerHeight - TASKBAR_HEIGHT;
+  return {
+    position: { x: Math.max(8, Math.round(w * 0.05) + offset), y: Math.max(8, 12 + offset) },
+    size: { width: Math.round(w * 0.8), height: Math.round(h * 0.72) },
+  };
+};
+
 export const Window: React.FC<WindowProps> = ({
   title,
   icon,
@@ -33,224 +47,138 @@ export const Window: React.FC<WindowProps> = ({
   isMaximized,
   isActive,
   zIndex,
-  defaultX = 100,
-  defaultY = 100,
-  defaultWidth = 700,
-  defaultHeight = 450,
-  darkMode = true,
-  deviceType = 'monitor',
+  darkMode,
   children,
   onClose,
   onMinimize,
   onMaximize,
   onFocus,
 }) => {
-  const [position, setPosition] = useState({ x: defaultX, y: defaultY });
-  const [size, setSize] = useState({ width: defaultWidth, height: defaultHeight });
-  const [isDragging, setIsDragging] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
+  const [geometry] = useState(initialGeometry);
+  const [position, setPosition] = useState(geometry.position);
+  const [size, setSize] = useState(geometry.size);
+  const [interaction, setInteraction] = useState<'drag' | 'resize' | null>(null);
   const [animState, setAnimState] = useState<AnimState>('idle');
   const [shouldRender, setShouldRender] = useState(false);
-  const [wasMinimized, setWasMinimized] = useState(false);
-  
-  const windowRef = useRef<HTMLDivElement>(null);
+  const wasMinimized = useRef(false);
+  const rendered = useRef(false);
+
   const dragStart = useRef({ x: 0, y: 0 });
   const positionStart = useRef({ x: 0, y: 0 });
   const sizeStart = useRef({ width: 0, height: 0 });
 
-  // Reset/Position adjustments on mount to avoid overlaying completely
   useEffect(() => {
-    const randomOffset = Math.floor(Math.random() * 20) - 10;
-    
-    // Calculate sizes based on device type
-    let initialWidth: number;
-    let initialHeight: number;
-    let initialX: number;
-    let initialY: number;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const later = (fn: () => void, ms: number) => timers.push(setTimeout(fn, ms));
 
-    if (deviceType === 'mobile') {
-      // Mobile: full width, full height with some padding
-      initialWidth = Math.max(window.innerWidth - 16, 300);
-      initialHeight = Math.max(window.innerHeight - 80, 300);
-      initialX = 8;
-      initialY = 8;
-    } else if (deviceType === 'tablet') {
-      // Tablet: nearly full-screen, centered
-      initialWidth = Math.min(window.innerWidth - 32, Math.max(defaultWidth, 600));
-      initialHeight = Math.min(window.innerHeight - 80, Math.max(defaultHeight, 460));
-      initialX = Math.max(16, (window.innerWidth - initialWidth) / 2 + randomOffset);
-      initialY = Math.max(16, (window.innerHeight - initialHeight) / 2 + randomOffset);
-    } else {
-      // Desktop: 80% width, 72% of available vertical space (minus taskbar ~48px)
-      const availableW = window.innerWidth;
-      const availableH = window.innerHeight - 48; // subtract taskbar
-      initialWidth = Math.round(availableW * 0.80);
-      initialHeight = Math.round(availableH * 0.72);
-      // Upper-left biased: ~5% from left, ~12px from top
-      initialX = Math.max(8, Math.round(availableW * 0.05) + randomOffset);
-      initialY = Math.max(8, 12 + randomOffset);
-    }
-
-    const timer = setTimeout(() => {
-      setSize({
-        width: initialWidth,
-        height: initialHeight,
-      });
-      
-      setPosition({
-        x: initialX,
-        y: initialY,
-      });
-    }, 0);
-
-    return () => clearTimeout(timer);
-  }, [deviceType, defaultWidth, defaultHeight, defaultX, defaultY]);
-
-  // Handle open/close/minimize transitions
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | undefined;
     if (isOpen && !isMinimized) {
-      setTimeout(() => {
+      rendered.current = true;
+      later(() => {
         setShouldRender(true);
-        if (wasMinimized) {
-          setAnimState('restoring');
-          setWasMinimized(false);
-          timer = setTimeout(() => setAnimState('idle'), 300);
-        } else {
-          setAnimState('opening');
-          timer = setTimeout(() => setAnimState('idle'), 280);
-        }
+        setAnimState(wasMinimized.current ? 'restoring' : 'opening');
+        wasMinimized.current = false;
+        later(() => setAnimState('idle'), 300);
       }, 0);
     } else if (isOpen && isMinimized) {
-      setTimeout(() => {
-        setWasMinimized(true);
-        setAnimState('minimizing');
-        timer = setTimeout(() => {
-          setShouldRender(false);
-          setAnimState('idle');
-        }, 300);
-      }, 0);
-    } else if (!isOpen && shouldRender) {
-      setTimeout(() => {
-        setAnimState('closing');
-        timer = setTimeout(() => {
+      wasMinimized.current = true;
+      rendered.current = false;
+      later(() => setAnimState('minimizing'), 0);
+      later(() => {
+        setShouldRender(false);
+        setAnimState('idle');
+      }, 300);
+    } else if (!isOpen) {
+      wasMinimized.current = false;
+      if (rendered.current) {
+        rendered.current = false;
+        later(() => setAnimState('closing'), 0);
+        later(() => {
           setShouldRender(false);
           setAnimState('idle');
         }, 200);
-      }, 0);
+      }
     }
-    return () => {
-      if (timer) clearTimeout(timer);
+    return () => timers.forEach(clearTimeout);
+  }, [isOpen, isMinimized]);
+
+  useEffect(() => {
+    if (!interaction) return;
+
+    const handleMove = (e: PointerEvent) => {
+      const dx = e.clientX - dragStart.current.x;
+      const dy = e.clientY - dragStart.current.y;
+      if (interaction === 'drag') {
+        setPosition({
+          x: Math.max(-size.width + 100, Math.min(window.innerWidth - 100, positionStart.current.x + dx)),
+          y: Math.max(0, Math.min(window.innerHeight - 50, positionStart.current.y + dy)),
+        });
+      } else {
+        setSize({
+          width: Math.max(320, Math.min(window.innerWidth - 20, sizeStart.current.width + dx)),
+          height: Math.max(200, Math.min(window.innerHeight - 80, sizeStart.current.height + dy)),
+        });
+      }
     };
-  }, [isOpen, isMinimized, shouldRender, wasMinimized]);
+    const handleUp = () => setInteraction(null);
 
-  // Handle Dragging
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (isMaximized) return;
+    document.addEventListener('pointermove', handleMove);
+    document.addEventListener('pointerup', handleUp);
+    return () => {
+      document.removeEventListener('pointermove', handleMove);
+      document.removeEventListener('pointerup', handleUp);
+    };
+  }, [interaction, size.width]);
+
+  const startDrag = (e: React.PointerEvent) => {
+    if (isMaximized || (e.target as HTMLElement).closest('.titlebar-btn')) return;
     onFocus();
-    
-    const target = e.target as HTMLElement;
-    if (target.closest('.titlebar-btn')) return;
-
-    setIsDragging(true);
+    setInteraction('drag');
     dragStart.current = { x: e.clientX, y: e.clientY };
-    positionStart.current = { x: position.x, y: position.y };
+    positionStart.current = position;
     e.preventDefault();
   };
 
-  // Handle Resizing (Bottom Right Corner)
-  const handleResizeMouseDown = (e: React.MouseEvent) => {
+  const startResize = (e: React.PointerEvent) => {
     if (isMaximized) return;
     onFocus();
-    
-    setIsResizing(true);
+    setInteraction('resize');
     dragStart.current = { x: e.clientX, y: e.clientY };
-    sizeStart.current = { width: size.width, height: size.height };
+    sizeStart.current = size;
     e.preventDefault();
     e.stopPropagation();
   };
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging) {
-        const dx = e.clientX - dragStart.current.x;
-        const dy = e.clientY - dragStart.current.y;
-        
-        const newX = Math.max(-size.width + 100, Math.min(window.innerWidth - 100, positionStart.current.x + dx));
-        const newY = Math.max(0, Math.min(window.innerHeight - 50, positionStart.current.y + dy));
-        
-        setPosition({ x: newX, y: newY });
-      }
-
-      if (isResizing) {
-        const dx = e.clientX - dragStart.current.x;
-        const dy = e.clientY - dragStart.current.y;
-        
-        const maxWidth = window.innerWidth - 20;
-        const maxHeight = window.innerHeight - 80;
-        const newWidth = Math.max(320, Math.min(maxWidth, sizeStart.current.width + dx));
-        const newHeight = Math.max(200, Math.min(maxHeight, sizeStart.current.height + dy));
-        
-        setSize({ width: newWidth, height: newHeight });
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-      setIsResizing(false);
-    };
-
-    if (isDragging || isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, isResizing, size.width, isMaximized]);
-
-  if (!shouldRender && !isOpen) return null;
   if (!shouldRender && animState === 'idle') return null;
 
-  // Determine the animation class
-  const getAnimClass = () => {
-    switch (animState) {
-      case 'opening': return 'animate-window-open';
-      case 'closing': return 'animate-window-close';
-      case 'minimizing': return 'animate-window-minimize';
-      case 'restoring': return 'animate-window-restore';
-      default: return '';
-    }
-  };
+  const buttonClass = `w-[46px] h-[30px] flex items-center justify-center transition-colors duration-150 rounded-sm ${
+    darkMode ? 'hover:bg-[rgba(255,255,255,0.06)] text-[#e3e3e3]' : 'hover:bg-[rgba(0,0,0,0.05)] text-[#1c1c1c]'
+  }`;
 
   return (
     <div
-      ref={windowRef}
+      data-window
       onClick={onFocus}
       style={{
-        zIndex: zIndex,
-        left: isMaximized ? 0 : `${position.x}px`,
-        top: isMaximized ? 0 : `${position.y}px`,
-        width: isMaximized ? '100%' : `${size.width}px`,
-        height: isMaximized ? 'calc(100% - 48px)' : `${size.height}px`,
+        zIndex,
+        left: isMaximized ? 0 : position.x,
+        top: isMaximized ? 0 : position.y,
+        width: isMaximized ? '100%' : size.width,
+        height: isMaximized ? `calc(100% - ${TASKBAR_HEIGHT}px)` : size.height,
         maxWidth: '100vw',
-        maxHeight: 'calc(100% - 48px)',
+        maxHeight: `calc(100% - ${TASKBAR_HEIGHT}px)`,
       }}
-      className={`absolute flex flex-col rounded-lg overflow-hidden glass-panel select-none ${isDragging || isResizing ? '' : 'transition-all duration-200'} shadow-window ${
-        isActive 
-          ? (darkMode ? 'glass-panel-dark shadow-activeWindow border-[rgba(255,255,255,0.15)]' : 'glass-panel-light shadow-activeWindow border-[rgba(255,255,255,0.55)]')
-          : (darkMode ? 'glass-panel-dark opacity-90' : 'glass-panel-light opacity-90')
-      } ${isMaximized ? 'rounded-none' : ''} ${getAnimClass()}`}
+      className={`absolute flex flex-col rounded-lg overflow-hidden glass-panel select-none ${interaction ? '' : 'transition-all duration-200'} shadow-window ${
+        darkMode ? 'glass-panel-dark' : 'glass-panel-light'
+      } ${isActive ? `shadow-activeWindow ${darkMode ? 'border-[rgba(255,255,255,0.15)]' : 'border-[rgba(255,255,255,0.55)]'}` : 'opacity-90'} ${
+        isMaximized ? 'rounded-none' : ''
+      } ${ANIM_CLASS[animState]}`}
     >
-      {/* Titlebar */}
       <div
-        onMouseDown={handleMouseDown}
+        onPointerDown={startDrag}
         onDoubleClick={onMaximize}
-        className={`flex items-center justify-between px-3 py-2 text-xs select-none cursor-default ${
-          darkMode 
-            ? 'bg-[rgba(25,25,25,0.4)] text-[#cccccc] border-b border-[rgba(255,255,255,0.04)]' 
+        className={`flex items-center justify-between px-3 py-2 text-xs select-none cursor-default touch-none ${
+          darkMode
+            ? 'bg-[rgba(25,25,25,0.4)] text-[#cccccc] border-b border-[rgba(255,255,255,0.04)]'
             : 'bg-[rgba(240,240,240,0.5)] text-[#444444] border-b border-[rgba(0,0,0,0.06)]'
         }`}
       >
@@ -259,34 +187,15 @@ export const Window: React.FC<WindowProps> = ({
           <span className="truncate">{title}</span>
         </div>
 
-        {/* Window Controls */}
         <div className="flex items-center titlebar-btn">
-          <button
-            onClick={(e) => { e.stopPropagation(); onMinimize(); }}
-            className={`w-[46px] h-[30px] flex items-center justify-center transition-colors duration-150 rounded-sm ${
-              darkMode ? 'hover:bg-[rgba(255,255,255,0.06)] text-[#e3e3e3]' : 'hover:bg-[rgba(0,0,0,0.05)] text-[#1c1c1c]'
-            }`}
-            title="Minimize"
-          >
+          <button onClick={e => { e.stopPropagation(); onMinimize(); }} className={buttonClass} title="Minimize">
             <Minus size={12} strokeWidth={2.5} />
           </button>
-          
-          <button
-            onClick={(e) => { e.stopPropagation(); onMaximize(); }}
-            className={`w-[46px] h-[30px] flex items-center justify-center transition-colors duration-150 rounded-sm ${
-              darkMode ? 'hover:bg-[rgba(255,255,255,0.06)] text-[#e3e3e3]' : 'hover:bg-[rgba(0,0,0,0.05)] text-[#1c1c1c]'
-            }`}
-            title={isMaximized ? 'Restore Down' : 'Maximize'}
-          >
-            {isMaximized ? (
-              <Copy size={10} strokeWidth={2.5} className="transform rotate-180" />
-            ) : (
-              <Square size={10} strokeWidth={2.5} />
-            )}
+          <button onClick={e => { e.stopPropagation(); onMaximize(); }} className={buttonClass} title={isMaximized ? 'Restore Down' : 'Maximize'}>
+            {isMaximized ? <Copy size={10} strokeWidth={2.5} className="rotate-180" /> : <Square size={10} strokeWidth={2.5} />}
           </button>
-
           <button
-            onClick={(e) => { e.stopPropagation(); onClose(); }}
+            onClick={e => { e.stopPropagation(); onClose(); }}
             className="w-[46px] h-[30px] flex items-center justify-center transition-colors duration-150 hover:bg-[#e81123] hover:text-white rounded-sm text-gray-500"
             title="Close"
           >
@@ -295,19 +204,15 @@ export const Window: React.FC<WindowProps> = ({
         </div>
       </div>
 
-      {/* Client Window Area */}
-      <div className="flex-1 overflow-auto relative flex flex-col focus:outline-none">
-        {children}
-      </div>
+      <div className="flex-1 overflow-auto relative flex flex-col focus:outline-none">{children}</div>
 
-      {/* Resize Handle - only when not maximized */}
       {!isMaximized && (
         <div
-          onMouseDown={handleResizeMouseDown}
-          className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize z-50 flex items-end justify-end p-0.5"
+          onPointerDown={startResize}
+          className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize z-50 flex items-end justify-end p-0.5 touch-none"
         >
-          <svg width="6" height="6" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-40">
-            <path d="M6 6H0M6 3.5H2.5M6 1H5" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+          <svg width="6" height="6" viewBox="0 0 6 6" fill="none" className="opacity-40">
+            <path d="M6 6H0M6 3.5H2.5M6 1H5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
           </svg>
         </div>
       )}
