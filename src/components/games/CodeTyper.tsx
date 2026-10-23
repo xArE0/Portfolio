@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { RotateCcw, SkipForward } from 'lucide-react';
 import { usePersistentState } from '../../hooks/usePersistentState';
 import { unlockSecret } from '../../lib/secrets';
+import { useSfx } from '../../lib/gameAudio';
 
 const SNIPPETS = [
   'const greet = (name: string) => `Hello, ${name}!`;',
@@ -27,6 +28,7 @@ export const CodeTyper: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
   const [now, setNow] = useState(() => Date.now());
   const [best, setBest] = usePersistentState('typer.best', 0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const sfx = useSfx();
 
   const done = typed === snippet;
   const elapsed = startedAt ? Math.max(1, now - startedAt) / 60000 : 0;
@@ -46,12 +48,15 @@ export const CodeTyper: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
     if (done || value.length > snippet.length) return;
     const t = Date.now();
     if (!startedAt) setStartedAt(t);
-    if (value.length > typed.length && value[value.length - 1] !== snippet[value.length - 1]) setErrors(e => e + 1);
+    const wrong = value.length > typed.length && value[value.length - 1] !== snippet[value.length - 1];
+    if (wrong) setErrors(e => e + 1);
+    if (value !== snippet) sfx(wrong ? 'typo' : 'key');
     setTyped(value);
     setNow(t);
     if (value === snippet) {
       const finalWpm = Math.round([...value].length / 5 / (Math.max(1, t - (startedAt ?? t)) / 60000));
       setBest(b => Math.max(b, finalWpm));
+      sfx('win');
       if (finalWpm >= 40) unlockSecret('typer');
     }
   };
@@ -61,6 +66,7 @@ export const CodeTyper: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
     setTyped('');
     setErrors(0);
     setStartedAt(null);
+    sfx('click');
     inputRef.current?.focus();
   };
 

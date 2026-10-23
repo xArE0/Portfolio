@@ -5,6 +5,10 @@ export const GAME_LIST = [
   { id: 'memory', name: 'Memory' },
   { id: 'typer', name: 'Code Typer' },
   { id: 'whack', name: 'Whack-a-Bug' },
+  { id: 'stacker', name: 'Stacker' },
+  { id: 'breakout', name: 'Brick Breaker' },
+  { id: 'flappy', name: 'Flappy Byte' },
+  { id: 'simon', name: 'Simon' },
 ];
 
 const EVENT = 'portfolio:arcade';

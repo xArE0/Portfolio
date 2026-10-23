@@ -24,6 +24,10 @@ export const SECRETS: Secret[] = [
   { id: 'memory', title: 'Photographic Memory', hint: 'Match every pair in 12 moves or less.' },
   { id: 'typer', title: 'Keyboard Warrior', hint: 'Type code at 40 WPM or faster.' },
   { id: 'whack', title: 'Exterminator', hint: 'Squash 25 bugs before time runs out.' },
+  { id: 'stacker', title: 'Clean Code', hint: 'Clear 10 lines in Stacker.' },
+  { id: 'breakout', title: 'Wall Breaker', hint: 'Clear every brick in Brick Breaker.' },
+  { id: 'flappy', title: 'Packet Pusher', hint: 'Fly a byte through 15 gaps.' },
+  { id: 'simon', title: 'Echo Chamber', hint: 'Repeat a 10-step pattern in Simon.' },
   { id: 'devtools', title: 'Inspector Gadget', hint: 'Developers always open the console.' },
   { id: 'night-owl', title: 'Night Owl', hint: 'Visit when sensible people are asleep.' },
 ];

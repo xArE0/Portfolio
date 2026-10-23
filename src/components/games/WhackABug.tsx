@@ -2,8 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Bug, Rocket, Play, RotateCcw } from 'lucide-react';
 import { usePersistentState } from '../../hooks/usePersistentState';
 import { unlockSecret } from '../../lib/secrets';
-import { playSound } from '../../lib/sound';
-import { useSystem } from '../../system';
+import { useSfx } from '../../lib/gameAudio';
 
 type Mole = { kind: 'bug' | 'feature'; id: number } | null;
 
@@ -11,7 +10,7 @@ const HOLES = 9;
 const DURATION = 30;
 
 export const WhackABug: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
-  const { soundEnabled } = useSystem();
+  const sfx = useSfx();
   const [holes, setHoles] = useState<Mole[]>(() => Array(HOLES).fill(null));
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(DURATION);
@@ -28,15 +27,20 @@ export const WhackABug: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
   }, [playing]);
 
   useEffect(() => {
+    if (playing && timeLeft > 0 && timeLeft <= 5) sfx('tick');
+  }, [playing, timeLeft, sfx]);
+
+  useEffect(() => {
     if (!playing || timeLeft > 0) return;
     const timer = setTimeout(() => {
       setPlaying(false);
       setHoles(Array(HOLES).fill(null));
       setBest(b => Math.max(b, scoreRef.current));
       if (scoreRef.current >= 25) unlockSecret('whack');
+      sfx(scoreRef.current >= 25 ? 'win' : 'lose');
     }, 0);
     return () => clearTimeout(timer);
-  }, [playing, timeLeft, setBest]);
+  }, [playing, timeLeft, setBest, sfx]);
 
   useEffect(() => {
     if (!playing || timeLeft <= 0) return;
@@ -57,6 +61,7 @@ export const WhackABug: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
     setTimeLeft(DURATION);
     setHoles(Array(HOLES).fill(null));
     setPlaying(true);
+    sfx('start');
   };
 
   const whack = (i: number) => {
@@ -68,7 +73,7 @@ export const WhackABug: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
     setHit(i);
     setTimeout(() => setHit(h => (h === i ? null : h)), 150);
     setHoles(prev => prev.map((m, j) => (j === i ? null : m)));
-    if (soundEnabled) playSound(mole.kind === 'bug' ? 'beep' : 'error');
+    sfx(mole.kind === 'bug' ? 'whack' : 'bad');
   };
 
   return (

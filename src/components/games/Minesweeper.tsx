@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Bomb, Flag, RotateCcw, Smile, Frown, PartyPopper } from 'lucide-react';
 import { usePersistentState } from '../../hooks/usePersistentState';
 import { unlockSecret } from '../../lib/secrets';
+import { useSfx } from '../../lib/gameAudio';
 
 interface Cell {
   mine: boolean;
@@ -57,6 +58,7 @@ export const Minesweeper: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
   const [board, setBoard] = useState(() => emptyBoard(size));
   const [status, setStatus] = useState<Status>('ready');
   const [flagMode, setFlagMode] = useState(false);
+  const sfx = useSfx();
   const [seconds, setSeconds] = useState(0);
   const [best, setBest] = usePersistentState<Record<Level, number | null>>('mines.best', { easy: null, medium: null, hard: null });
 
@@ -71,6 +73,7 @@ export const Minesweeper: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
     setBoard(emptyBoard(LEVELS[next].size));
     setStatus('ready');
     setSeconds(0);
+    sfx('click');
   };
 
   const reveal = (i: number) => {
@@ -87,21 +90,27 @@ export const Minesweeper: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
       next.forEach(c => c.mine && (c.open = true));
       setBoard(next);
       setStatus('lost');
+      sfx('explode');
+      setTimeout(() => sfx('lose'), 500);
       return;
     }
 
+    let opened = 0;
     const stack = [i];
     while (stack.length) {
       const j = stack.pop()!;
       const c = next[j];
       if (c.open || c.flag) continue;
       c.open = true;
+      opened++;
       if (c.count === 0) stack.push(...neighbors(j, size));
     }
 
+    sfx(opened > 1 ? 'sweep' : 'pop');
     setBoard(next);
     if (next.every(c => c.mine || c.open)) {
       setStatus('won');
+      sfx('win');
       unlockSecret('minesweeper');
       setBest(b => ({ ...b, [level]: b[level] === null ? seconds : Math.min(b[level]!, seconds) }));
     }
@@ -109,6 +118,7 @@ export const Minesweeper: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
 
   const toggleFlag = (i: number) => {
     if (status !== 'playing' || board[i].open) return;
+    sfx('flag');
     setBoard(prev => prev.map((c, j) => (j === i ? { ...c, flag: !c.flag } : c)));
   };
 

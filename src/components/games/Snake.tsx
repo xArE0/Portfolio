@@ -2,8 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Play, RotateCcw } from 'lucide-react';
 import { usePersistentState } from '../../hooks/usePersistentState';
 import { unlockSecret } from '../../lib/secrets';
-import { playSound } from '../../lib/sound';
-import { useSystem } from '../../system';
+import { useSfx } from '../../lib/gameAudio';
 
 interface SnakeProps {
   darkMode: boolean;
@@ -33,7 +32,7 @@ const randomFood = (snake: Point[]): Point => {
 };
 
 export const Snake: React.FC<SnakeProps> = ({ darkMode }) => {
-  const { soundEnabled } = useSystem();
+  const sfx = useSfx();
   const [snake, setSnake] = useState(startSnake);
   const [food, setFood] = useState<Point>({ x: 15, y: 10 });
   const [status, setStatus] = useState<Status>('ready');
@@ -54,14 +53,16 @@ export const Snake: React.FC<SnakeProps> = ({ darkMode }) => {
     dir.current = DIRS.right;
     queued.current = DIRS.right;
     setStatus('playing');
+    sfx('start');
     containerRef.current?.focus();
   };
 
   const turn = useCallback((name: keyof typeof DIRS) => {
     const next = DIRS[name];
     if (next.x === -dir.current.x && next.y === -dir.current.y) return;
+    if (next !== queued.current) sfx('turn');
     queued.current = next;
-  }, []);
+  }, [sfx]);
 
   useEffect(() => {
     if (status !== 'playing') return;
@@ -72,7 +73,8 @@ export const Snake: React.FC<SnakeProps> = ({ darkMode }) => {
       const hitWall = head.x < 0 || head.y < 0 || head.x >= GRID || head.y >= GRID;
       if (hitWall || prev.some(p => p.x === head.x && p.y === head.y)) {
         setStatus('over');
-        if (soundEnabled) playSound('error');
+        sfx('whack');
+        sfx('lose');
         return;
       }
       const next = [head, ...prev];
@@ -82,7 +84,7 @@ export const Snake: React.FC<SnakeProps> = ({ darkMode }) => {
         const points = next.length - 3;
         setBest(b => Math.max(b, points));
         if (points >= 10) unlockSecret('snake');
-        if (soundEnabled) playSound('beep');
+        sfx(points % 5 === 0 ? 'levelup' : 'eat');
       } else {
         next.pop();
       }
@@ -91,7 +93,7 @@ export const Snake: React.FC<SnakeProps> = ({ darkMode }) => {
       setFood(nextFood);
     }, Math.max(60, 140 - score * 4));
     return () => clearInterval(timer);
-  }, [status, score, soundEnabled, setBest]);
+  }, [status, score, sfx, setBest]);
 
   const handleKey = (e: React.KeyboardEvent) => {
     const name = KEYS[e.key.length === 1 ? e.key.toLowerCase() : e.key];

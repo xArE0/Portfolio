@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { usePersistentState } from '../../hooks/usePersistentState';
 import { unlockSecret } from '../../lib/secrets';
+import { useSfx } from '../../lib/gameAudio';
 
 type Dir = 'up' | 'down' | 'left' | 'right';
 type Grid = number[];
@@ -74,15 +75,22 @@ export const Game2048: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
   const [best, setBest] = usePersistentState('2048.best', 0);
   const ref = useRef<HTMLDivElement>(null);
   const touch = useRef<{ x: number; y: number } | null>(null);
+  const sfx = useSfx();
   const over = !canMove(grid);
   const top = Math.max(...grid);
 
   useEffect(() => ref.current?.focus(), []);
+  useEffect(() => {
+    if (over) sfx('lose');
+  }, [over, sfx]);
 
   const move = (dir: Dir) => {
     const res = slide(grid, dir);
     if (!res.moved) return;
     const next = addTile(res.grid);
+    const newTop = Math.max(...next);
+    if (newTop > top && newTop >= 128) sfx('levelup');
+    else sfx(res.gained ? 'merge' : 'move', res.gained);
     setGrid(next);
     setScore(s => {
       const total = s + res.gained;
@@ -95,6 +103,7 @@ export const Game2048: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
   const restart = () => {
     setGrid(newGrid());
     setScore(0);
+    sfx('start');
     ref.current?.focus();
   };
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Code, Database, Cpu, Terminal, Globe, GitBranch, Cloud, Bug, RotateCcw, type LucideIcon } from 'lucide-react';
 import { usePersistentState } from '../../hooks/usePersistentState';
 import { unlockSecret } from '../../lib/secrets';
+import { useSfx } from '../../lib/gameAudio';
 
 const FACES: { Icon: LucideIcon; color: string }[] = [
   { Icon: Code, color: 'text-amber-400' },
@@ -27,6 +28,7 @@ export const MemoryGame: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
   const [moves, setMoves] = useState(0);
   const [best, setBest] = usePersistentState<number | null>('memory.best', null);
   const won = matched.size === cards.length;
+  const sfx = useSfx();
 
   useEffect(() => {
     if (flipped.length !== 2) return;
@@ -35,19 +37,23 @@ export const MemoryGame: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
       if (cards[a] === cards[b]) {
         const next = new Set(matched).add(a).add(b);
         setMatched(next);
+        sfx(next.size === cards.length ? 'win' : 'match');
         if (next.size === cards.length) {
           setBest(prev => (prev === null ? moves : Math.min(prev, moves)));
           if (moves <= 12) unlockSecret('memory');
         }
+      } else {
+        sfx('miss');
       }
       setFlipped([]);
     }, cards[a] === cards[b] ? 250 : 750);
     return () => clearTimeout(timer);
-  }, [flipped, cards, matched, moves, setBest]);
+  }, [flipped, cards, matched, moves, setBest, sfx]);
 
   const flip = (i: number) => {
     if (flipped.length === 2 || flipped.includes(i) || matched.has(i)) return;
     if (flipped.length === 1) setMoves(m => m + 1);
+    sfx('flip');
     setFlipped(f => [...f, i]);
   };
 
@@ -56,6 +62,7 @@ export const MemoryGame: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
     setFlipped([]);
     setMatched(new Set());
     setMoves(0);
+    sfx('start');
   };
 
   return (
